@@ -16,4 +16,5 @@ public interface JobPostingsService {
     Job getJobPostingsById(int id);
     Job createOrUpdate(Job p);
     void deleleJobPostings(int id);
+    long countJobs(Map<String, String> params);
 }

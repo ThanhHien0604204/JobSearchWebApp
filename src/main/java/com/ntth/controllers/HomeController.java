@@ -16,6 +16,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestParam;
 
 /**
  *
@@ -31,7 +32,9 @@ public class HomeController {
     private JobCategoryRepository jobCategoryRepository;
 
     @GetMapping("/")
-    public String showHomePage(@ModelAttribute("job") Job job, Model model) {
+    public String showHomePage(@ModelAttribute("job") Job job,
+            @RequestParam(value = "page", defaultValue = "1") String page,
+            Model model) {
         if (job.getCategoryId() == null) {
             job.setCategoryId(new JobCategory());
         }
@@ -67,10 +70,18 @@ public class HomeController {
 //        if (job.getRadius() != null) {
 //            params.put("radius", job.getRadius().toString());
 //        }
-        params.put("page", "1"); // Mặc định trang 1
+        params.put("page", page); // Truyền page từ query parameter
 
         List<Job> jobpostings = jobService.getJob(params);
         model.addAttribute("jobpostings", jobpostings);
+
+        // Tính tổng số trang
+        long totalJobs = jobService.countJobs(params);
+        int pageSize = 10; // Giả sử PAGE_SIZE = 10
+        int totalPages = (int) Math.ceil((double) totalJobs / pageSize);
+        model.addAttribute("currentPage", Integer.parseInt(page));
+        model.addAttribute("totalPages", totalPages > 0 ? totalPages : 1);
+        model.addAttribute("pageSize", pageSize);
 
         List<JobCategory> categories = jobCategoryRepository.getAllCategories();
         model.addAttribute("categories", categories != null ? categories : List.of());

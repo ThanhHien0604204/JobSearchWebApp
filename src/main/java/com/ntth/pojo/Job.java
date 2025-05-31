@@ -53,7 +53,7 @@ public class Job implements Serializable {
     private Integer id;
     @Basic(optional = false)
     @NotNull
-    @Size(min = 1, max = 100)
+    @Size(min = 1, max = 20000)
     @Column(name = "title")
     private String title;
     @Lob

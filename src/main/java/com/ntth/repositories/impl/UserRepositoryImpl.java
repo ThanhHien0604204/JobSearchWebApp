@@ -4,10 +4,14 @@
  */
 package com.ntth.repositories.impl;
 
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
 import com.ntth.pojo.User;
 import com.ntth.repositories.UserRepository;
 import jakarta.persistence.NoResultException;
 import jakarta.persistence.Query;
+import java.io.IOException;
+import java.util.Map;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +19,7 @@ import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  *
@@ -37,6 +42,9 @@ public class UserRepositoryImpl implements UserRepository {
         this.sessionFactory = factory.getObject();
         this.passwordEncoder = passwordEncoder;
     }
+    
+    @Autowired
+    private Cloudinary cloudinary;
 
     @Override
     public User addUser(User user) {
@@ -123,4 +131,5 @@ public class UserRepositoryImpl implements UserRepository {
             save(user);
         }
     }
+   
 }

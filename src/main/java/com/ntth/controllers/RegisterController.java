@@ -20,8 +20,7 @@ import com.ntth.services.UserService;
 import com.ntth.pojo.User;
 import com.ntth.repositories.UserRepository;
 import com.ntth.services.CompanyService;
-import java.io.IOException;
-import java.util.Map;
+import com.ntth.util.CloudinaryUtil;
 
 @Controller
 public class RegisterController {
@@ -32,10 +31,10 @@ public class RegisterController {
     @Autowired
     private CompanyService companyService;
     // Getter để truy cập UserRepository từ UserService
-    
+
     @Autowired
-    private Cloudinary cloudinary;
-    
+    private CloudinaryUtil cloudinaryUtil;
+
     @Autowired
     private UserRepository userRepository;
 
@@ -102,7 +101,7 @@ public class RegisterController {
             }
 
             // Upload avatar lên Cloudinary
-            String avatarUrl = uploadToCloudinary(avatar);
+            String avatarUrl = cloudinaryUtil.uploadToCloudinary(avatar);
             if (avatarUrl == null) {
                 redirectAttributes.addFlashAttribute("error", "Lỗi khi upload ảnh đại diện.");
                 return "redirect:/register";
@@ -115,14 +114,14 @@ public class RegisterController {
             user.setEmail(email);
             user.setPhone(phone);
             user.setUsername(username);
-            user.setPassword(password); 
+            user.setPassword(password);
             user.setRole(User.Role.valueOf(role));
             user.setAvatar(avatarUrl);
 //            if (role.equals("EMPLOYER")) {
 //                user.setActive(false); // Chờ phê duyệt
 //            }
             userService.addUser(user);
-            
+
             // Lấy user từ database để đảm bảo có ID
             User savedUser = userService.getUserByUsername(username);
             if (savedUser == null || savedUser.getId() == null) {
@@ -132,9 +131,9 @@ public class RegisterController {
 
             // Lưu thông tin công ty cho EMPLOYER
             if (role.equals("EMPLOYER")) {
-                String image1Url = uploadToCloudinary(image1);
-                String image2Url = uploadToCloudinary(image2);
-                String image3Url = uploadToCloudinary(image3);
+                String image1Url = cloudinaryUtil.uploadToCloudinary(image1);
+                String image2Url = cloudinaryUtil.uploadToCloudinary(image2);
+                String image3Url = cloudinaryUtil.uploadToCloudinary(image3);
                 if (image1Url == null || image2Url == null || image3Url == null) {
                     redirectAttributes.addFlashAttribute("error", "Lỗi khi upload ảnh công ty.");
                     return "redirect:/register";
@@ -165,12 +164,4 @@ public class RegisterController {
             return "redirect:/register";
         }
     }
-    
-    private String uploadToCloudinary(MultipartFile file) throws IOException {
-        // Nếu file rỗng thì không làm gì cả, trả về null
-        if (file.isEmpty()) return null;
-        Map uploadResult = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.emptyMap());
-        return (String) uploadResult.get("secure_url");
-    }
-
 }

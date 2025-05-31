@@ -4,31 +4,26 @@
  */
 package com.ntth.services.impl;
 
-import com.cloudinary.Cloudinary;
-import com.cloudinary.utils.ObjectUtils;
 import com.ntth.pojo.Company;
 import com.ntth.pojo.User;
 import com.ntth.repositories.CompanyRepository;
 import com.ntth.services.UserService;
 import com.ntth.repositories.UserRepository;
-import com.ntth.repositories.impl.UserRepositoryImpl;
+import com.ntth.services.CompanyService;
+import com.ntth.util.CloudinaryUtil;
+import com.ntth.util.JwtUtils;
 import jakarta.transaction.Transactional;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -48,9 +43,16 @@ public class UserServiceImpl implements UserService {
     private CompanyRepository companyRepository;
 
     @Autowired
+    private CompanyService companyService;
+
+    @Autowired
     private BCryptPasswordEncoder passwordEncoder;
-//    @Autowired
-//    private Cloudinary cloudinary;
+
+    @Autowired
+    private CloudinaryUtil cloudinaryUtil;
+    
+    @Autowired
+    private JwtUtils jwtUtil;
 
     @Override
     public User getUserByUsername(String username) {
@@ -89,18 +91,41 @@ public class UserServiceImpl implements UserService {
 
     //xác thực người dùng dựa trên username và password
     @Override
-    public User authenticate(String username, String password) {
+    public Map<String, Object> authenticateUser(String username, String password) {
+        Map<String, Object> response = new HashMap<>();
+        // Tìm user theo username
         User user = userRepository.getUserByUsername(username);
-        if (user != null && passwordEncoder.matches(password, user.getPassword()) && user.isActive()) {
-            return user;
+        if (user == null) {
+            response.put("success", false);
+            response.put("message", "Tên đăng nhập không tồn tại.");
+            return response;
         }
-        return null;
+        // Kiểm tra mật khẩu
+        if (!passwordEncoder.matches(password, user.getPassword())) {
+            response.put("success", false);
+            response.put("message", "Mật khẩu không đúng.");
+            return response;
+        }
+        // Kiểm tra trạng thái tài khoản (EMPLOYER chờ phê duyệt)
+        if (!user.isActive()) {
+            response.put("success", false);
+            response.put("message", "Tài khoản của bạn đang chờ phê duyệt.");
+            return response;
+        }
+        // Tạo JWT token
+        String token = jwtUtil.generateToken(user.getUsername(), user.getRole().toString());
+
+        response.put("success", true);
+        response.put("message", "Đăng nhập thành công!");
+        response.put("token", token);
+        response.put("user", user);
+        return response;
     }
 
     @Override
     public boolean isEmployerApproved(Integer userId) {
         // Giả định kiểm tra trạng thái approved trong bảng company
-        return true; 
+        return true;
     }
 
     @Override
@@ -126,4 +151,135 @@ public class UserServiceImpl implements UserService {
         return userRepository;
     }
 
+    @Override
+    public Map<String, Object> registerUser(
+            String firstName,
+            String lastName,
+            String email,
+            String phone,
+            String username,
+            String password,
+            String role,
+            MultipartFile avatar,
+            String companyName,
+            String taxCode,
+            String description,
+            String address,
+            String website,
+            MultipartFile image1,
+            MultipartFile image2,
+            MultipartFile image3) {
+
+        Map<String, Object> response = new HashMap<>();
+
+        try {
+            // Kiểm tra tính duy nhất của username và email
+//            if (userRepository.existsByUsername(username) || userRepository.existsByEmail(email)) {
+//                response.put("success", false);
+//                response.put("message", "Tên đăng nhập hoặc email đã tồn tại.");
+//                return response;
+//            }
+
+            // Kiểm tra dữ liệu bắt buộc cho người dùng
+            if (firstName == null || firstName.trim().isEmpty() || lastName == null || lastName.trim().isEmpty()
+                    || email == null || email.trim().isEmpty() || username == null || username.trim().isEmpty()
+                    || password == null || password.trim().isEmpty() || role == null || role.trim().isEmpty()
+                    || avatar == null || avatar.isEmpty()) {
+                response.put("success", false);
+                response.put("message", "Tất cả thông tin người dùng và ảnh đại diện đều bắt buộc.");
+                return response;
+            }
+
+            // Kiểm tra dữ liệu bắt buộc cho EMPLOYER
+            int imageCount = 0;
+            if (image1 != null && !image1.isEmpty()) {
+                imageCount++;
+            }
+            if (image2 != null && !image2.isEmpty()) {
+                imageCount++;
+            }
+            if (image3 != null && !image3.isEmpty()) {
+                imageCount++;
+            }
+            if ("EMPLOYER".equalsIgnoreCase(role) && (companyName == null || companyName.trim().isEmpty()
+                    || taxCode == null || taxCode.trim().isEmpty() || imageCount < 3)) {
+                response.put("success", false);
+                response.put("message", "Nhà tuyển dụng phải cung cấp tên công ty, mã số thuế và ít nhất 3 ảnh.");
+                return response;
+            }
+
+            // Upload avatar lên Cloudinary
+            String avatarUrl = cloudinaryUtil.uploadToCloudinary(avatar);
+            if (avatarUrl == null) {
+                response.put("success", false);
+                response.put("message", "Lỗi khi upload ảnh đại diện.");
+                return response;
+            }
+
+            // Lưu thông tin người dùng
+            User user = new User();
+            user.setFirstName(firstName.trim());
+            user.setLastName(lastName.trim());
+            user.setEmail(email.trim());
+            user.setPhone(phone != null ? phone.trim() : null);
+            user.setUsername(username.trim());
+            user.setPassword(password); // Giả định password đã được mã hóa trước khi lưu
+            user.setRole(User.Role.valueOf(role.toUpperCase()));
+            user.setAvatar(avatarUrl);
+            user.setActive(!"EMPLOYER".equalsIgnoreCase(role)); // EMPLOYER chờ phê duyệt
+
+            userRepository.addUser(user);
+
+            // Lấy user từ database để đảm bảo có ID
+            User savedUser = userRepository.getUserByUsername(username);
+            if (savedUser == null || savedUser.getId() == null) {
+                response.put("success", false);
+                response.put("message", "Lỗi khi lưu thông tin người dùng.");
+                return response;
+            }
+
+            // Lưu thông tin công ty cho EMPLOYER
+            if ("EMPLOYER".equalsIgnoreCase(role)) {
+                String image1Url = cloudinaryUtil.uploadToCloudinary(image1);
+                String image2Url = cloudinaryUtil.uploadToCloudinary(image2);
+                String image3Url = cloudinaryUtil.uploadToCloudinary(image3);
+                if (image1Url == null || image2Url == null || image3Url == null) {
+                    response.put("success", false);
+                    response.put("message", "Lỗi khi upload ảnh công ty.");
+                    return response;
+                }
+
+                Company company = new Company();
+                company.setUserId(savedUser);
+                company.setName(companyName.trim());
+                company.setTaxCode(taxCode.trim());
+                company.setDescription(description != null ? description.trim() : null);
+                company.setAddress(address != null ? address.trim() : null);
+                company.setWebsite(website != null ? website.trim() : null);
+                company.setImage1(image1Url);
+                company.setImage2(image2Url);
+                company.setImage3(image3Url);
+                company.setApproved(false); // Chờ ADMIN xét duyệt
+                companyService.save(company);
+            }
+
+            response.put("success", true);
+            response.put("message", "Đăng ký thành công! Nếu bạn là nhà tuyển dụng, vui lòng đợi quản trị viên xét duyệt.");
+            response.put("user", savedUser); // Trả về thông tin user (có thể tùy chỉnh)
+            return response;
+
+        } catch (IllegalArgumentException e) {
+            response.put("success", false);
+            response.put("message", "Role không hợp lệ: " + e.getMessage());
+            return response;
+        } catch (IOException e) {
+            response.put("success", false);
+            response.put("message", "Lỗi khi upload file: " + e.getMessage());
+            return response;
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "Đăng ký thất bại: " + e.getMessage());
+            return response;
+        }
+    }
 }

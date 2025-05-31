@@ -30,6 +30,7 @@ import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
 @EnableWebSecurity
 @EnableTransactionManagement
 @ComponentScan(basePackages = {
+    "com.ntth",
     "com.ntth.controllers",
     "com.ntth.repositories",
     "com.ntth.services"
@@ -77,9 +78,8 @@ public class SpringSecurityConfigs {
                 .requestMatchers("/admin/**").hasAuthority("ADMIN")
                 .requestMatchers("/api/jobpostings/**").hasAuthority("EMPLOYER")
                 .requestMatchers("/jobpostings", "/jobpostings/**", "/add").hasAuthority("EMPLOYER")
-                .requestMatchers("/", "/index", "/login", "/register", "/js/**").permitAll()
-                .requestMatchers("/api/**").permitAll())
-                //.anyRequest().authenticated())
+                .requestMatchers("/", "/index","/api/**", "/login", "/register", "/js/**").permitAll()
+                .anyRequest().authenticated())
                 .formLogin(form -> form
                 .loginPage("/login")//đn thành công chuyển hướng đến /login
                 .loginProcessingUrl("/login")//form đăng nhập gửi dữ liệu đến
@@ -107,7 +107,7 @@ public class SpringSecurityConfigs {
                 })
                 .permitAll())
                 .logout(logout -> logout
-                .logoutSuccessUrl("/login").permitAll())
+                .logoutSuccessUrl("/").permitAll())
                 .exceptionHandling(e -> e
                 .accessDeniedPage("/login"));//người dùng cố gắng truy cập một URL mà họ không có quyền
 

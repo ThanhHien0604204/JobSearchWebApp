@@ -52,10 +52,14 @@ public class JobPostingsServiceImpl implements JobPostingsService {
         return this.jobRepo.createOrUpdate(p);
     }
 
-
     @Override
     public void deleleJobPostings(int id) {
-         this.jobRepo.deleleJob(id);
+        this.jobRepo.deleleJob(id);
+    }
+
+    @Override
+    public long countJobs(Map<String, String> params) {
+        return jobRepo.countJobs(params);
     }
 
 }

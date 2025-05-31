@@ -18,9 +18,4 @@ public class APIDashboardController {
     public String adminDashboard() {
         return "adminDashboard";
     }
-
-//    @GetMapping("/access-denied")
-//    public String accessDenied() {
-//        return "accessDenied";
-//    }
 }

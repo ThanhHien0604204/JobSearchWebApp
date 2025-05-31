@@ -12,12 +12,10 @@ import com.ntth.repositories.CompanyRepository;
 import com.ntth.repositories.JobCategoryRepository;
 import com.ntth.repositories.UserRepository;
 import com.ntth.services.JobPostingsService;
-import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import java.util.ArrayList;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -38,7 +36,6 @@ public class JobController {
     private JobPostingsService jobService;
 
     @Autowired
-    //@Qualifier("jobCategoryRepositoryImpl")
     private JobCategoryRepository jobCategoryRepository;
     @Autowired
     private CompanyRepository companyRepository;
@@ -46,7 +43,6 @@ public class JobController {
     private UserRepository userRepository;
 
     @GetMapping("/jobpostings")//chỗ duy nhất tạo đối tượng
-    //@Transactional
     public String createView(Model model, Authentication authentication) {
         System.out.println("[DEBUG] Accessing job posting form");
         Job job = new Job();
@@ -78,7 +74,6 @@ public class JobController {
     }
 
     @PostMapping("/add")//nơi gửi đối tượng lên
-    //@Transactional
     public String add(@Valid @ModelAttribute("job") Job job, BindingResult result, Model model,Authentication authentication) {
         System.out.println("[DEBUG] Saving job posting");
         if (result.hasErrors()) {
@@ -133,7 +128,6 @@ public class JobController {
 
 
     @GetMapping("/jobpostings/{jobpostingsId}")//cap nhat
-    //@Transactional
     public String updateView(Model model, @PathVariable(value = "jobpostingsId") int id) {
 ////        System.out.println("[DEBUG] Editing job posting id: " + id);
 //        Optional<Job> jobOpt = jobService.getJobPostingsById(id);

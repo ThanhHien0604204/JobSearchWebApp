@@ -28,6 +28,7 @@
             <div class="row g-3">
                 <div class="col-md-4">
                     <input type="text" class="form-control" th:field="*{title}" placeholder="Từ khóa..."/>
+                    <div th:if="${#fields.hasErrors('title')}" th:errors="*{title}" class="text-danger"></div>
                 </div>
                 <div class="col-md-4">
                     <select class="form-control" th:field="*{categoryId.id}">
@@ -106,6 +107,26 @@
                 </tr>
             </tbody>
         </table>
+<!--        <div th:if="${totalPages > 0}">
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item" th:class="${currentPage == 1} ? 'disabled' : ''">
+                        <a class="page-link" 
+                           th:href="@{/(page=${currentPage - 1},title=${job.title},categoryId=${job.categoryId?.id},salaryFrom=${job.salaryFrom},salaryTo=${job.salaryTo},location=${job.location},workingTime=${job.workingTime},latitude=${job.latitude},longitude=${job.longitude},radius=${job.radius})}">Trước</a>
+                    </li>
+                    <li th:each="i : ${#numbers.sequence(1, totalPages)}" 
+                        class="page-item" th:classappend="${currentPage == i} ? 'active' : ''">
+                        <a class="page-link" 
+                           th:href="@{/(page=${i},title=${job.title},categoryId=${job.categoryId?.id},salaryFrom=${job.salaryFrom},salaryTo=${job.salaryTo},location=${job.location},workingTime=${job.workingTime},latitude=${job.latitude},longitude=${job.longitude},radius=${job.radius})}" 
+                           th:text="${i}"></a>
+                    </li>
+                    <li class="page-item" th:class="${currentPage == totalPages} ? 'disabled' : ''">
+                        <a class="page-link" 
+                           th:href="@{/(page=${currentPage + 1},title=${job.title},categoryId=${job.categoryId?.id},salaryFrom=${job.salaryFrom},salaryTo=${job.salaryTo},location=${job.location},workingTime=${job.workingTime},latitude=${job.latitude},longitude=${job.longitude},radius=${job.radius})}">Sau</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>-->
         <div th:if="${jobpostings.isEmpty()}" class="alert alert-info">
             Không tìm thấy công việc.
         </div>
@@ -113,7 +134,7 @@
 
     <!-- <div th:replace="base :: footer"></div>-->
 
-    <script th:src="@{/js/main.js}"></script> <--<!-- tu vao thu muc tinh luc nay tao de lay thu muc ra  --> 
+    <script th:src="@{/js/main.js}"></script><!-- tu vao thu muc tinh luc nay tao de lay thu muc ra  --> 
 </body>
 </html>
 

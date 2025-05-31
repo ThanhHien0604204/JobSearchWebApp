@@ -20,11 +20,6 @@ import java.util.Map;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Example;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.repository.query.FluentQuery;
 import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
@@ -36,7 +31,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 @Transactional//bật giao tác
 public class JobPostingsRepositoryImpl implements JobPostingsRepository {
 
-    private static final int PAGE_SIZE = 6;
+    private static final int PAGE_SIZE = 4;
 
 //    @Autowired//có autowired mới có đối tượng
 //    private LocalSessionFactoryBean factory;
@@ -63,12 +58,12 @@ public class JobPostingsRepositoryImpl implements JobPostingsRepository {
             String kw = params.get("kw");
             //do nếu dùng where để truy vấn thì chỉ đc dùng where 1 lần
             //mà đề yêu cầu truy vấn nhiều dạng=> đưa vào ds vị từ trc
-             if (kw != null && !kw.trim().isEmpty()) {
+            if (kw != null && !kw.trim().isEmpty()) {
                 predicates.add(b.like(b.lower(root.get("title")), "%" + kw.toLowerCase() + "%"));
             }
             // Mức lương từ
             String salaryFrom = params.get("salaryFrom");
-           if (salaryFrom != null && !salaryFrom.trim().isEmpty()) {
+            if (salaryFrom != null && !salaryFrom.trim().isEmpty()) {
                 try {
                     predicates.add(b.greaterThanOrEqualTo(root.get("salaryFrom"), new BigDecimal(salaryFrom)));
                 } catch (NumberFormatException e) {
@@ -100,10 +95,6 @@ public class JobPostingsRepositoryImpl implements JobPostingsRepository {
                 predicates.add(b.like(b.lower(root.get("location")), "%" + location.toLowerCase() + "%"));
             }
 
-//            String cateId = params.get("categoryId");
-//            if (cateId != null && !cateId.isEmpty()) {
-//                predicates.add(b.equal(root.get("categoryId").as(Integer.class), cateId));
-//            }                       //trường khóa ngoại chỉ kiểu số nguyên để chỉ lấy khóa chính so sanh thôi
             // Thời gian làm việc
             String workingTime = params.get("workingTime");
             if (workingTime != null && !workingTime.trim().isEmpty()) {
@@ -154,13 +145,13 @@ public class JobPostingsRepositoryImpl implements JobPostingsRepository {
                 int page = Integer.parseInt(params.getOrDefault("page", "1"));
                 //k gửi thì mặc định lấy 1
                 int start = (page - 1) * PAGE_SIZE;
-                query.setMaxResults(PAGE_SIZE);//số phần từ tối đa lấy trong 1 lầy
+                query.setMaxResults(PAGE_SIZE);//số phần từ tối đa lấy trong 1 lấy(số bản ghi trả về trong một trang)
                 query.setFirstResult(start);//vị trí đầu tiên bắt đầu lấy 
+                System.out.println("[DEBUG] Fetching jobs for page: " + params.get("page") + ", start: " + start + ", max: " + PAGE_SIZE);
             } catch (NumberFormatException e) {
                 System.out.println("[ERROR] Invalid page: " + params.get("page"));
             }
         }
-
         return query.getResultList();
 
     }
@@ -193,4 +184,66 @@ public class JobPostingsRepositoryImpl implements JobPostingsRepository {
         s.remove(p);
     }
 
+    @Override
+    public long countJobs(Map<String, String> params) {
+        Session s = sessionFactory.getCurrentSession();
+        CriteriaBuilder b = s.getCriteriaBuilder();
+        CriteriaQuery<Long> q = b.createQuery(Long.class);
+        Root root = q.from(Job.class);
+        q.select(b.count(root));
+
+        List<Predicate> predicates = new ArrayList<>();
+        predicates.add(b.equal(root.get("companyId").get("approved"), true));
+        System.out.println("[DEBUG] Predicate: companyId.approved = true");
+
+        if (params != null) {
+            String kw = params.get("kw");
+            if (kw != null && !kw.trim().isEmpty()) {
+                predicates.add(b.like(b.lower(root.get("title")), "%" + kw.toLowerCase() + "%"));
+                System.out.println("[DEBUG] Predicate: title LIKE %" + kw + "%");
+            }
+            String salaryFrom = params.get("salaryFrom");
+            if (salaryFrom != null && !salaryFrom.trim().isEmpty()) {
+                try {
+                    predicates.add(b.greaterThanOrEqualTo(root.get("salaryFrom"), new BigDecimal(salaryFrom)));
+                    System.out.println("[DEBUG] Predicate: salaryFrom >= " + salaryFrom);
+                } catch (NumberFormatException e) {
+                    System.out.println("[ERROR] Invalid salaryFrom: " + salaryFrom);
+                }
+            }
+            String salaryTo = params.get("salaryTo");
+            if (salaryTo != null && !salaryTo.trim().isEmpty()) {
+                try {
+                    predicates.add(b.lessThanOrEqualTo(root.get("salaryTo"), new BigDecimal(salaryTo)));
+                    System.out.println("[DEBUG] Predicate: salaryTo <= " + salaryTo);
+                } catch (NumberFormatException e) {
+                    System.out.println("[ERROR] Invalid salaryTo: " + salaryTo);
+                }
+            }
+            String categoryId = params.get("categoryId");
+            if (categoryId != null && !categoryId.trim().isEmpty()) {
+                try {
+                    predicates.add(b.equal(root.get("categoryId").get("id"), Integer.parseInt(categoryId)));
+                    System.out.println("[DEBUG] Predicate: categoryId = " + categoryId);
+                } catch (NumberFormatException e) {
+                    System.out.println("[ERROR] Invalid categoryId: " + categoryId);
+                }
+            }
+            String location = params.get("location");
+            if (location != null && !location.trim().isEmpty()) {
+                predicates.add(b.like(b.lower(root.get("location")), "%" + location.toLowerCase() + "%"));
+                System.out.println("[DEBUG] Predicate: location LIKE %" + location + "%");
+            }
+            String workingTime = params.get("workingTime");
+            if (workingTime != null && !workingTime.trim().isEmpty()) {
+                predicates.add(b.equal(b.lower(root.get("workingTime")), workingTime.toLowerCase()));
+                System.out.println("[DEBUG] Predicate: workingTime = " + workingTime);
+            }
+        }
+
+        q.where(predicates.toArray(Predicate[]::new));
+        long count = s.createQuery(q).getSingleResult();
+        System.out.println("[DEBUG] Total jobs: " + count);
+        return count;
+    }
 }

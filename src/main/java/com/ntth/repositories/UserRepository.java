@@ -5,6 +5,7 @@
 package com.ntth.repositories;
 
 import com.ntth.pojo.User;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  *
