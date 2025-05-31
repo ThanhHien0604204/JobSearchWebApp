@@ -223,7 +223,7 @@ public class UserServiceImpl implements UserService {
             user.setEmail(email.trim());
             user.setPhone(phone != null ? phone.trim() : null);
             user.setUsername(username.trim());
-            user.setPassword(password); // Giả định password đã được mã hóa trước khi lưu
+            user.setPassword(password); 
             user.setRole(User.Role.valueOf(role.toUpperCase()));
             user.setAvatar(avatarUrl);
             user.setActive(!"EMPLOYER".equalsIgnoreCase(role)); // EMPLOYER chờ phê duyệt

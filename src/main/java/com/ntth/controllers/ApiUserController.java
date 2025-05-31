@@ -33,7 +33,7 @@ public class ApiUserController {
     @Autowired
     private UserService userService;
 
-    @PostMapping("/register")
+    @PostMapping("/users")
     public ResponseEntity<?> registerUser(
             @RequestParam("firstName") String firstName,
             @RequestParam("lastName") String lastName,
@@ -64,7 +64,7 @@ public class ApiUserController {
         }
     }
 
-    @PostMapping("/api/login")
+    @PostMapping("/login")
     public ResponseEntity<?> loginUser(
             @RequestParam("username") String username,
             @RequestParam("password") String password) {
