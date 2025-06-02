@@ -4,6 +4,7 @@
  */
 package com.ntth.pojo;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.Basic;
 import jakarta.persistence.CascadeType;
@@ -90,10 +91,13 @@ public class Company implements Serializable {
     private Date createdAt;
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     @ManyToOne(optional = false)
+    @JsonIgnore
     private User userId;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "companyId")
+    @JsonIgnore
     private Set<Follow> followSet;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "companyId")
+    @JsonIgnore
     private Set<Job> jobSet;
 
     public Company() {
@@ -197,6 +201,7 @@ public class Company implements Serializable {
         this.createdAt = createdAt;
     }
 
+     @JsonIgnore
     public User getUserId() {
         return userId;
     }
@@ -205,6 +210,7 @@ public class Company implements Serializable {
         this.userId = userId;
     }
 
+    @JsonIgnore
     public Set<Follow> getFollowSet() {
         return followSet;
     }
@@ -213,6 +219,7 @@ public class Company implements Serializable {
         this.followSet = followSet;
     }
 
+    @JsonIgnore
     public Set<Job> getJobSet() {
         return jobSet;
     }

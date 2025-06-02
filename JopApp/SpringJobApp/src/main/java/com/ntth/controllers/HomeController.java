@@ -72,7 +72,7 @@ public class HomeController {
 //        }
         params.put("page", page); // Truyền page từ query parameter
 
-        List<Job> jobpostings = jobService.getJob(params);
+        Map<String, Object> jobpostings = jobService.getJob(params);
         model.addAttribute("jobpostings", jobpostings);
 
         // Tính tổng số trang

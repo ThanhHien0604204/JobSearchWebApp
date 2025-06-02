@@ -13,10 +13,10 @@ import java.util.Map;
  * @author LOQ
  */
 public interface JobPostingsRepository {
-    List<Job> getJob(Map<String, String> params);
+    Map<String, Object> getJob(Map<String, String> params);
     Job getJobById(int id);
     Job createOrUpdate(Job p);
     void deleleJob(int id);
     long countJobs(Map<String, String> params);
-
 }
+

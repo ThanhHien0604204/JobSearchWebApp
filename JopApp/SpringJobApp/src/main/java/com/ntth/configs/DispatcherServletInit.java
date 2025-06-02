@@ -4,6 +4,7 @@
  */
 package com.ntth.configs;
 
+import com.ntth.filters.JwtFilter;
 import jakarta.servlet.Filter;
 import jakarta.servlet.MultipartConfigElement;
 import jakarta.servlet.ServletRegistration;
@@ -49,9 +50,8 @@ public class DispatcherServletInit extends AbstractAnnotationConfigDispatcherSer
 
         registration.setMultipartConfig(new MultipartConfigElement(location, maxFileSize, maxRequestSize, fileSizeThreshold));
     }
-//    
-//    @Override////thêm JwtFilter, hiện tại đang bị comment.
-//    protected Filter[] getServletFilters() {
-//        return new Filter[] { new JwtFilter() }; // Filter sẽ áp dụng cho mọi request
-//    }
+    @Override
+    protected Filter[] getServletFilters() {
+        return new Filter[] { new JwtFilter() }; // Filter sẽ áp dụng cho mọi request
+    }
 }

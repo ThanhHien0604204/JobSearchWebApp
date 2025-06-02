@@ -4,6 +4,7 @@
  */
 package com.ntth.pojo;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.Basic;
 import jakarta.persistence.CascadeType;
@@ -101,20 +102,24 @@ public class User implements Serializable {
     @Column(name = "created_at")
     @Temporal(TemporalType.TIMESTAMP)
     private Date createdAt;
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "fromUserId")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "fromUserId", fetch = FetchType.LAZY)
+    @JsonIgnore
     private Set<Feedback> feedbackSet;
-    ///////////
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "toUserId", fetch = FetchType.EAGER)
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "toUserId", fetch = FetchType.LAZY)
+    @JsonIgnore
     private Set<Feedback> feedbackSet1;
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "userId")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "userId", fetch = FetchType.LAZY)
+    @JsonIgnore
     private Set<JobApplication> jobApplicationSet;
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "userId")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "userId", fetch = FetchType.LAZY)
+    @JsonIgnore
     private Set<VerificationDocument> verificationDocumentSet;
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "userId", fetch = FetchType.EAGER)
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "userId", fetch = FetchType.LAZY)
+    @JsonIgnore
     private Set<Company> companySet;
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "userId")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "userId", fetch = FetchType.LAZY)
+    @JsonIgnore
     private Set<Follow> followSet;
-
     public User() {
     }
 
@@ -226,14 +231,7 @@ public class User implements Serializable {
         this.createdAt = createdAt;
     }
 
-    public Set<Feedback> getFeedbackSet() {
-        return feedbackSet;
-    }
-
-    public void setFeedbackSet(Set<Feedback> feedbackSet) {
-        this.feedbackSet = feedbackSet;
-    }
-
+    @JsonIgnore
     public Set<Feedback> getFeedbackSet1() {
         return feedbackSet1;
     }
@@ -242,6 +240,7 @@ public class User implements Serializable {
         this.feedbackSet1 = feedbackSet1;
     }
 
+    @JsonIgnore
     public Set<JobApplication> getJobApplicationSet() {
         return jobApplicationSet;
     }
@@ -250,6 +249,7 @@ public class User implements Serializable {
         this.jobApplicationSet = jobApplicationSet;
     }
 
+    @JsonIgnore
     public Set<VerificationDocument> getVerificationDocumentSet() {
         return verificationDocumentSet;
     }
@@ -258,6 +258,7 @@ public class User implements Serializable {
         this.verificationDocumentSet = verificationDocumentSet;
     }
 
+    @JsonIgnore
     public Set<Company> getCompanySet() {
         return companySet;
     }
@@ -266,6 +267,7 @@ public class User implements Serializable {
         this.companySet = companySet;
     }
 
+    @JsonIgnore
     public Set<Follow> getFollowSet() {
         return followSet;
     }

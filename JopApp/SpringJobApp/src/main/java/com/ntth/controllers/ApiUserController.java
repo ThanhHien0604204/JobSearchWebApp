@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 import com.ntth.pojo.User;
 import com.ntth.services.UserService;
+import java.util.HashMap;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -20,18 +21,20 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+
 /**
  *
  * @author User
  */
 @RestController
 @RequestMapping("/api")
-@CrossOrigin
+@CrossOrigin(origins = "http://localhost:3000")
 public class ApiUserController {
 
     @Autowired
@@ -41,7 +44,8 @@ public class ApiUserController {
     public ResponseEntity<List<Feedback>> getFeedbacks(@PathVariable(value = "userId") int id) {
         return new ResponseEntity<>(this.userService.getFeedbacks(id), HttpStatus.OK);
     }
-     @PostMapping("/users")
+
+    @PostMapping("/users")
     public ResponseEntity<?> registerUser(
             @RequestParam("firstName") String firstName,
             @RequestParam("lastName") String lastName,
@@ -73,11 +77,27 @@ public class ApiUserController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> loginUser(
-            @RequestParam("username") String username,
-            @RequestParam("password") String password) {
-        Map<String, Object> response = userService.authenticateUser(username, password);
+    public ResponseEntity<?> loginUser(@RequestBody Map<String, String> loginRequest) {
+        System.out.println("[DEBUG] Login request received: " + loginRequest);
+        String username = loginRequest.get("username");
+        String password = loginRequest.get("password");
 
+        // Kiểm tra đầu vào
+        Map<String, Object> response = new HashMap<>();
+        if (username == null || username.trim().isEmpty()) {
+            response.put("success", false);
+            response.put("message", "Tên đăng nhập là bắt buộc.");
+            System.out.println("[DEBUG] Missing or empty username");
+            return ResponseEntity.badRequest().body(response);
+        }
+        if (password == null || password.trim().isEmpty()) {
+            response.put("success", false);
+            response.put("message", "Mật khẩu là bắt buộc.");
+            System.out.println("[DEBUG] Missing or empty password");
+            return ResponseEntity.badRequest().body(response);
+        }
+
+        response = userService.authenticateUser(username, password);
         if ((boolean) response.get("success")) {
             return ResponseEntity.ok(response);
         } else {

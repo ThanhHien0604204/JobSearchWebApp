@@ -11,6 +11,7 @@ com\ntth\repositories\impl\FeedbackRepositoryImpl.class
 com\ntth\services\impl\JobCategoryServiceImpl.class
 com\ntth\controllers\ApiFollowController.class
 com\ntth\controllers\JobController.class
+com\ntth\filters\ApiAuthenticationFilter.class
 com\ntth\repositories\impl\JobPostingsRepositoryImpl.class
 com\ntth\configs\SecurityWebApplicationInitializer.class
 com\ntth\configs\HibernateConfigs.class
@@ -38,6 +39,7 @@ com\ntth\services\impl\UserServiceImpl.class
 com\ntth\controllers\UserController.class
 com\ntth\util\JwtRequestFilter.class
 com\ntth\configs\WebAppContextConfigs.class
+com\ntth\configs\JacksonConfig.class
 com\ntth\repositories\impl\CompanyRepositoryImpl.class
 com\ntth\services\UserService.class
 com\ntth\pojo\JobApplication$Status.class
@@ -53,6 +55,7 @@ com\ntth\controllers\IndexController.class
 com\ntth\pojo\Job.class
 com\ntth\pojo\User.class
 com\ntth\controllers\APIDashboardController.class
+com\ntth\filters\JwtFilter.class
 com\ntth\repositories\FeedbackRepository.class
 com\ntth\repositories\impl\FollowRepositoryImpl.class
 com\ntth\controllers\ApiCategoryController.class

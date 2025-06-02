@@ -34,6 +34,7 @@ public class UserController {
     @GetMapping("/login")
     public String loginView(Model model, @RequestParam(value = "error", required = false) String error,
             @RequestParam(value = "logout", required = false) String logout) {
+        System.out.println("[DEBUG] GET /login called, error: " + error + ", logout: " + logout);
         if (error != null) {
             model.addAttribute("error", "Tên đăng nhập hoặc mật khẩu không đúng, hoặc tài khoản chưa được kích hoạt.");
         }

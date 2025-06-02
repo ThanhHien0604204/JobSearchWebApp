@@ -97,7 +97,7 @@
                 </tr>
             </thead>
             <tbody>
-                <tr th:each="p : ${jobpostings}"> 
+                <tr th:each="p : ${jobpostings.jobs}">
                     <td th:text="${p.id}"></td>
                     <td th:text="${p.title}"></td>
                     <td th:text="${p.description}"></td>
@@ -123,7 +123,7 @@
                 </tr>
             </tbody>
         </table>
-        <div th:if="${jobpostings.isEmpty()}" class="alert alert-info">
+        <div th:if="${jobpostings.jobs.isEmpty()}" class="alert alert-info">
             Không tìm thấy công việc.
         </div>
     </main>

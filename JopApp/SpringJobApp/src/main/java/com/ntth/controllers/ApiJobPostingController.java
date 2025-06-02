@@ -1,4 +1,4 @@
- /*
+/*
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
@@ -28,6 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api")
 @CrossOrigin
 public class ApiJobPostingController {
+
     @Autowired
     private JobPostingsService jobService;
 
@@ -36,14 +37,11 @@ public class ApiJobPostingController {
         this.jobService.deleleJobPostings(id);
         return ResponseEntity.noContent().build();
     }
-    @GetMapping("/jobpostings")
-public ResponseEntity<Map<String, Object>> getJobPostings(
-    @RequestParam Map<String, String> params) {
-    Map<String, Object> response = new HashMap<>();
-//    List<Job> jobs = jobService.getJobPostingsById(params.getId());
-//    int totalPages = jobService.getTotalPages(params);
-//    response.put("jobs", jobs);
-//    response.put("totalPages", totalPages);
-    return ResponseEntity.ok(response);
-}
+
+    @GetMapping("/jobs")
+    public ResponseEntity<Map<String, Object>> getJobPostings(
+            @RequestParam Map<String, String> params) {
+        Map<String, Object> response = jobService.getJob(params);
+        return ResponseEntity.ok(response);
+    }
 }

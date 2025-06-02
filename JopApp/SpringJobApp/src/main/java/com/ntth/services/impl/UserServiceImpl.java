@@ -53,17 +53,17 @@ public class UserServiceImpl implements UserService {
     private CompanyRepository companyRepository;
 
     @Autowired
+    private CompanyService companyService;
+
+    @Autowired
     private BCryptPasswordEncoder passwordEncoder;
 
     @Autowired
     private CloudinaryUtil cloudinaryUtil;
-
+    
     @Autowired
     private JwtUtils jwtUtil;
-
-    @Autowired
-    private CompanyService companyService;
-
+    
     @Override
     public User getUserByUsername(String username) {
         return this.userRepository.getUserByUsername(username);
@@ -111,9 +111,10 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public boolean isEmployerApproved(Integer userId) {
-        // Giả định kiểm tra trạng thái approved trong bảng company
-        return true;
+        Company company = companyRepository.findByUserId(userId);
+        return company != null && company.getApproved();
     }
+
 
     @Override
     @Transactional
@@ -188,6 +189,14 @@ public class UserServiceImpl implements UserService {
             response.put("success", false);
             response.put("message", "Tài khoản của bạn đang chờ phê duyệt.");
             return response;
+        }
+        if (user.getRole() == User.Role.EMPLOYER) {
+            Company company = companyRepository.findByUserId(user.getId());
+            if (company == null || !company.getApproved()) {
+                response.put("success", false);
+                response.put("message", "Tài khoản nhà tuyển dụng chưa được phê duyệt.");
+                return response;
+            }
         }
         // Tạo JWT token
         String token = jwtUtil.generateToken(user.getUsername(), user.getRole().toString());
@@ -271,7 +280,7 @@ public class UserServiceImpl implements UserService {
             user.setEmail(email.trim());
             user.setPhone(phone != null ? phone.trim() : null);
             user.setUsername(username.trim());
-            user.setPassword(password);
+            user.setPassword(passwordEncoder.encode(password)); // Mã hóa mật khẩu tại tầng service
             user.setRole(User.Role.valueOf(role.toUpperCase()));
             user.setAvatar(avatarUrl);
             user.setActive(!"EMPLOYER".equalsIgnoreCase(role)); // EMPLOYER chờ phê duyệt

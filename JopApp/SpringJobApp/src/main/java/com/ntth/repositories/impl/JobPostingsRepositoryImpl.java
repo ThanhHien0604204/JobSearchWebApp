@@ -12,9 +12,10 @@ import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.hibernate.Session;
@@ -43,9 +44,11 @@ public class JobPostingsRepositoryImpl implements JobPostingsRepository {
     }
 
     @Override
-    public List<Job> getJob(Map<String, String> params) {
+    @Transactional(readOnly = true)
+    public Map<String, Object> getJob(Map<String, String> params) {
         Session s = sessionFactory.getCurrentSession();
         CriteriaBuilder b = s.getCriteriaBuilder();//chưa tất cả truy vấn
+        // Tạo CriteriaQuery để lấy danh sách job
         CriteriaQuery<Job> q = b.createQuery(Job.class);
         Root root = q.from(Job.class);
         q.select(root);//lấy hết
@@ -135,7 +138,7 @@ public class JobPostingsRepositoryImpl implements JobPostingsRepository {
 //                    System.out.println("[ERROR] Invalid latitude/longitude/radius: " + latitude + "/" + longitude + "/" + radius);
 //                }
 //            }
-            //rồi mới dùng where 1 lần
+            // Áp dụng điều kiện cho truy vấn//rồi mới dùng where 1 lần
             q.where(predicates.toArray(Predicate[]::new));
         }         //chuyển thành mảng   //cú pháp này tách ra từng phần tử truyền vào where
         Query query = s.createQuery(q);
@@ -152,8 +155,17 @@ public class JobPostingsRepositoryImpl implements JobPostingsRepository {
                 System.out.println("[ERROR] Invalid page: " + params.get("page"));
             }
         }
-        return query.getResultList();
+        List<Job> jobs = query.getResultList();
 
+        // Tính tổng số trang bằng countJobs
+        long totalRecords = countJobs(params);
+        int totalPages = (int) Math.ceil((double) totalRecords / PAGE_SIZE);
+
+        // Trả về kết quả
+        Map<String, Object> response = new HashMap<>();
+        response.put("jobs", jobs);
+        response.put("totalPages", totalPages);
+        return response;
     }
 
     @Override//lấy sp theo mã

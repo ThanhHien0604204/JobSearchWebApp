@@ -4,11 +4,14 @@
  */
 package com.ntth.pojo;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.Basic;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -86,12 +89,15 @@ public class Job implements Serializable {
     private Date createdDate;
     @Column(name = "active")
     private Boolean active;
-    @OneToMany(mappedBy = "jobId")
+    @OneToMany(mappedBy = "jobId",fetch = FetchType.LAZY)
+    @JsonIgnore
     private Set<Feedback> feedbackSet;
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "jobId")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "jobId",fetch = FetchType.LAZY)
+    @JsonIgnore
     private Set<JobApplication> jobApplicationSet;
     @JoinColumn(name = "company_id", referencedColumnName = "id")
     @ManyToOne(optional = false)
+    @JsonManagedReference
     private Company companyId;
     @JoinColumn(name = "category_id", referencedColumnName = "id")
     @ManyToOne(optional = false)
@@ -197,6 +203,7 @@ public class Job implements Serializable {
         this.active = active;
     }
 
+    @JsonIgnore
     public Set<Feedback> getFeedbackSet() {
         return feedbackSet;
     }
@@ -205,6 +212,7 @@ public class Job implements Serializable {
         this.feedbackSet = feedbackSet;
     }
 
+    @JsonIgnore
     public Set<JobApplication> getJobApplicationSet() {
         return jobApplicationSet;
     }

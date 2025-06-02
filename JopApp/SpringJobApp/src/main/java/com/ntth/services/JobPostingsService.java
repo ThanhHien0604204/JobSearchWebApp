@@ -13,15 +13,10 @@ import com.ntth.pojo.Job;
  * @author LOQ
  */
 public interface JobPostingsService {
-
-    List<Job> getJob(Map<String, String> params);
-
+    Map<String, Object> getJob(Map<String, String> params);
     Job getJobPostingsById(int id);
-
     Job createOrUpdate(Job p);
-
     void deleleJobPostings(int id);
-
     long countJobs(Map<String, String> params);
-
 }
+

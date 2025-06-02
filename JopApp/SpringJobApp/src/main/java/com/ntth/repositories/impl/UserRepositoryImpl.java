@@ -134,9 +134,7 @@ public class UserRepositoryImpl implements UserRepository {
     public void save(User user) {
         Session session = sessionFactory.getCurrentSession();
         try {
-            session.beginTransaction();
             session.saveOrUpdate(user);
-            session.getTransaction().commit();
         } catch (Exception e) {
             session.getTransaction().rollback();
             throw new RuntimeException("Error saving user: " + e.getMessage());

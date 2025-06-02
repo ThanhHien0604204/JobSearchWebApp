@@ -4,6 +4,7 @@
  */
 package com.ntth.pojo;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.Basic;
 import jakarta.persistence.CascadeType;
@@ -50,6 +51,7 @@ public class JobCategory implements Serializable {
     @Column(name = "description")
     private String description;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "categoryId")
+    @JsonIgnore
     private Set<Job> jobSet;
 
     public JobCategory() {
@@ -88,6 +90,7 @@ public class JobCategory implements Serializable {
         this.description = description;
     }
 
+    @JsonIgnore
     public Set<Job> getJobSet() {
         return jobSet;
     }

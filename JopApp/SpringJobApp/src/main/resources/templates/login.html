@@ -14,7 +14,7 @@
         <div th:if="${param.error}" class="alert alert-danger" th:text="${session.error}">
             Tên đăng nhập hoặc mật khẩu không đúng!
         </div>
-        <form th:action="@{/login}"  method="post" >
+        <form th:action="@{/perform_login}"  method="post" >
             <div class="mb-3 mt-3">
 
                 <input type="text" class="form-control" name="username" placeholder="Tên đăng nhập" />

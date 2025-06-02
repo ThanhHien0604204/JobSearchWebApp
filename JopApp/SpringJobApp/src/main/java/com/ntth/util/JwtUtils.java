@@ -21,13 +21,46 @@ import org.springframework.stereotype.Component;
 
 /**
  *
+ * @author huu-thanhduong
  */
 @Component
 public class JwtUtils {
     // SECRET nên được lưu bằng biến môi trường,
-    private static final String SECRET_KEY = "12345678901234567890123456789012"; // 32 ký tự (AES key)
-    private static final long EXPIRATION_TIME = 86400000; // 1 ngày
+    private static final String SECRET = "12345678901234567890123456789012"; // 32 ký tự (AES key)
+    private static final long EXPIRATION_MS = 86400000; // 1 ngày
 
+    public static String generateToken(String username) throws Exception {
+        JWSSigner signer = new MACSigner(SECRET);
+
+        JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
+                .subject(username)
+                .expirationTime(new Date(System.currentTimeMillis() + EXPIRATION_MS))
+                .issueTime(new Date())
+                .build();
+
+        SignedJWT signedJWT = new SignedJWT(
+                new JWSHeader(JWSAlgorithm.HS256),
+                claimsSet
+        );
+
+        signedJWT.sign(signer);
+
+        return signedJWT.serialize();
+    }
+
+    public static String validateTokenAndGetUsername(String token) throws Exception {
+        SignedJWT signedJWT = SignedJWT.parse(token);
+        JWSVerifier verifier = new MACVerifier(SECRET);
+
+        if (signedJWT.verify(verifier)) {
+            Date expiration = signedJWT.getJWTClaimsSet().getExpirationTime();
+            if (expiration.after(new Date())) {
+                return signedJWT.getJWTClaimsSet().getSubject();
+            }
+        }
+        return null;
+    }
+    ////////
     public String generateToken(String username, String role) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("role", role);
@@ -35,17 +68,17 @@ public class JwtUtils {
                 .setClaims(claims)
                 .setSubject(username)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
-                .signWith(SignatureAlgorithm.HS512, SECRET_KEY)
+                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_MS))
+                .signWith(SignatureAlgorithm.HS512, SECRET)
                 .compact();
     }
 
     public String extractUsername(String token) {
-        return Jwts.parser().setSigningKey(SECRET_KEY).parseClaimsJws(token).getBody().getSubject();
+        return Jwts.parser().setSigningKey(SECRET).parseClaimsJws(token).getBody().getSubject();
     }
 
     public String extractRole(String token) {
-        return Jwts.parser().setSigningKey(SECRET_KEY).parseClaimsJws(token).getBody().get("role", String.class);
+        return Jwts.parser().setSigningKey(SECRET).parseClaimsJws(token).getBody().get("role", String.class);
     }
 
     public boolean validateToken(String token, String username) {
@@ -54,7 +87,7 @@ public class JwtUtils {
     }
 
     private boolean isTokenExpired(String token) {
-        return Jwts.parser().setSigningKey(SECRET_KEY).parseClaimsJws(token).getBody()
+        return Jwts.parser().setSigningKey(SECRET).parseClaimsJws(token).getBody()
                 .getExpiration().before(new Date());
     }
 }
