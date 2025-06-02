@@ -65,9 +65,10 @@ public class WebAppContextConfigs implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/api/**")
-                .allowedOrigins("http://localhost:3000")
-                .allowedMethods("GET", "POST", "PUT", "DELETE")
-                .allowedHeaders("*")
-                .allowCredentials(true);
+                .allowedOrigins("http://localhost:3000") // Cho phép origin của ReactJS
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS") // Cho phép các phương thức
+                .allowedHeaders("*") // Cho phép tất cả header
+                .allowCredentials(true) // Cho phép gửi cookie/token
+                .maxAge(3600); // Thời gian cache preflight (tùy chọn)
     }
 }

@@ -29,6 +29,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.multipart.MultipartResolver;
 import org.springframework.web.multipart.support.StandardServletMultipartResolver;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
 
 /**
@@ -166,7 +167,6 @@ public class SpringSecurityConfigs {
 
         return mailSender;
     }
-
     @Bean
     public JwtUtils jwtUtils() {
         return new JwtUtils();
