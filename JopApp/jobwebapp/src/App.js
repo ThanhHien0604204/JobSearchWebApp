@@ -7,21 +7,32 @@ import Login from './components/Login';
 import JobList from './components/JobList';
 import Register from './components/Register';
 import Profile from './components/Profile';
-const App = () => {
-  return (
-     <BrowserRouter>
-     {/* //viết trong đây sẽ là cố định( k thay đổi trong rất cả  điều hướng) */}
-      <Header />
-      <Routes>
-        {/* viết trong routes này sẽ thay đổi */}
-        <Route path="/" element={<Home />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/users" element={<Register />} />
-        <Route path="/secure/profile" element={<Profile />} />
-      </Routes>
+import MyCartReducer from "./reducers/MyCartReducer";
+import MyUserReducer from "./reducers/MyUserReducer";
+import { MyCartContext, MyDispatchContext, MyUserContext, UserProvider } from './configs/Contexts';
+import { useReducer } from 'react';
 
-      <JobList />
-    </BrowserRouter>
+
+const App = () => {
+  console.log("App is rendering");
+  //const [user, dispatch] = useReducer(MyUserReducer, null);
+  //const [cart, cartDispatch] = useReducer(MyCartReducer, 0);
+  return (
+    <UserProvider> {/* Sử dụng UserProvider thay vì tự quản lý useReducer */}
+      <BrowserRouter>
+        {/* //viết trong đây sẽ là cố định( k thay đổi trong rất cả  điều hướng) */}
+        <Header />
+        <Routes>
+          {/* viết trong routes này sẽ thay đổi */}
+          <Route path="/" element={<Home />} />
+          <Route path="/logins" element={<Login />} />
+          <Route path="/users" element={<Register />} />
+          {/* <Route path="/secure/profile" element={<Profile />} /> */}
+        </Routes>
+
+        <JobList />
+      </BrowserRouter>
+    </UserProvider>
   );
 }
 

@@ -1,14 +1,17 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { Button, Container, Nav, Navbar, NavDropdown, Image } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { endpoints, authApis } from '../../configs/Api';
 import cookie from 'react-cookies';
+import { MyDispatchContext, MyUserContext } from '../../configs/Contexts';
 
 const Header = () => {
   const [categories, setCategories] = useState([]);
-  const [user, setUser] = useState(null);
-  const navigate = useNavigate();
+  const user = useContext(MyUserContext);
+  const nav = useNavigate();
+  const [kw, setKw] = useState();
+  const dispatch = useContext(MyDispatchContext);
 
   useEffect(() => {
     // Lấy danh sách danh mục
@@ -18,28 +21,28 @@ const Header = () => {
       })
       .catch((error) => console.error('Lỗi khi tìm danh mục:', error));
 
-    // Lấy thông tin người dùng
-    const token = cookie.load('token');
-    if (token) {
-      authApis(token).get(endpoints.currentUser)
-        .then((response) => {
-          setUser(response.data);
-        })
-        .catch((error) => {
-          console.error('Lỗi khi tìm kiếm người dùng:', error);
-          cookie.remove('token'); // Xóa token nếu không hợp lệ
-          setUser(null);
-        });
-    }
+    // // Lấy thông tin người dùng
+    // const token = cookie.load('token');
+    // if (token) {
+    //   authApis(token).get(endpoints['current-user'])
+    //     .then((response) => {
+    //       setUser(response.data);
+    //     })
+    //     .catch((error) => {
+    //       console.error('Lỗi khi tìm kiếm người dùng:', error);
+    //       cookie.remove('token'); // Xóa token nếu không hợp lệ
+    //       setUser(null);
+    //     });
+    // }
   }, []);
 
-  const handleLogout = () => {
-    cookie.remove('token');
-    setUser(null);
-    navigate('/login');
-  };
+  // const handleLogout = () => {
+  //   cookie.remove('token');
+  //   setUser(null);
+  //   nav('/login');
+  // };
   const handleLoginRegister = () => {
-    navigate('/login'); // Hoặc mở modal đăng nhập/đăng ký nếu cần
+    nav('/login'); // Hoặc mở modal đăng nhập/đăng ký nếu cần
   };
   return (
     <Navbar expand="lg" bg="light" variant="light" className="shadow-sm py-3">
@@ -51,12 +54,10 @@ const Header = () => {
 
         {/* Liên kết giữa */}
         <Nav className="mx-auto">
-          <Nav.Link as={Link} to="/" className="text-primary mx-3">
-          Trang chủ
-          </Nav.Link>
+          <Link to="/" className="nav-link">Trang chủ</Link>
         </Nav>
 
-          {/* <NavDropdown title="Danh mục" id="categoryDropdown">
+        {/* <NavDropdown title="Danh mục" id="categoryDropdown">
             {categories.map((c) => (
               <NavDropdown.Item
                 key={c.id}
@@ -67,37 +68,31 @@ const Header = () => {
               </NavDropdown.Item>
             ))}
           </NavDropdown> */}
-            {user === null ? (
-              <>
-                <Nav.Link as={Link} to="/users" className="text-success">
-                  Đăng ký
-                </Nav.Link>
-                <Nav.Link as={Link} to="/login" className="text-danger">
-                  Đăng nhập
-                </Nav.Link>
-              </>
-            ) : (
-              <>
-                <Nav.Link as={Link} to="/secure/profile" className="me-3">
-                  <Image
-                    src={user.avatar || 'https://via.placeholder.com/40'}
-                    alt="Avatar"
-                    roundedCircle
-                    className="me-2"
-                    width="40"
-                  />
-                  Chào {user.username}!
-                </Nav.Link>
-                {user.role === 'EMPLOYER' && (
-                  <Nav.Link as={Link} to="/jobpostings" className="text-primary me-3">
-                    Đăng bài
-                  </Nav.Link>
-                )}
-                <Button variant="danger" onClick={handleLogout} className="rounded-pill">
-                  Đăng xuất
-                </Button>
-              </>
+        {user === null ? (
+          <>
+            <Link to="/users" className="nav-link text-success">Đăng ký</Link>
+            <Link to="/logins" className="nav-link text-danger">Đăng nhập</Link>
+          </>
+        ) : (
+          <>
+            <Link to="/" className="me-3">
+              <Image
+                src={user.avatar || 'https://via.placeholder.com/40'}
+                alt="Avatar"
+                roundedCircle
+                className="me-2"
+                width="40"
+              />
+              Chào {user.username}!
+            </Link>
+            {user.role === 'EMPLOYER' && (
+              <Link to="/jobpostings" className="nav-link text-danger">Đăng bài</Link>
             )}
+            <Button variant="danger" onClick={() => dispatch({ "type": "logout" })} className="rounded-pill">
+              Đăng xuất
+            </Button>
+          </>
+        )}
       </Container>
     </Navbar>
   );

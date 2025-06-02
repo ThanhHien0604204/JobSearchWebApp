@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import PlacesAutocomplete from 'react-places-autocomplete';
 import { Link } from 'react-router-dom';
 import { Alert, Button, Col, Container, Form, Row, Card } from 'react-bootstrap';
@@ -6,6 +6,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { endpoints,authApis } from '../configs/Api';
 import cookie from 'react-cookies';
+import { MyUserContext } from '../configs/Contexts';
 
 // const Home = () => {
 //     const [jobpostings, setJobpostings] = useState([]);
@@ -328,9 +329,17 @@ import cookie from 'react-cookies';
 
 // export default Home;
 const Home = () => {
+  const user = useContext(MyUserContext);
+
   return (
-    <>
-    </>
+      <div>
+          <h2>Trang chủ</h2>
+          {user ? (
+              <p>Xin chào, {user.username}!</p>
+          ) : (
+              <p>Vui lòng đăng nhập.</p>
+          )}
+      </div>
   );
 }
 export default Home;

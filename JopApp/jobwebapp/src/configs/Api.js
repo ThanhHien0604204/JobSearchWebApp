@@ -7,20 +7,26 @@ export const endpoints = {
     'categories': '/categories',
     'jobpostings': '/jobpostings',
     'register': '/users',
-    'login': '/login',
+    'login': 'logins',
     'current-user': '/secure/profile',
     //'deleteJob': '/api/jobpostings',
 }
 
 export const authApis = () => {//object để tạo request có token
+    const token = cookie.load('token');
+    console.log("authApis - Token from cookie:", token); // Debug
     return axios.create({
         baseURL: BASE_URL,
         headers: {
-            'Authorization': `Bearer ${cookie.load('token')}`
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${cookie.load('token')}`,
         }
     })
 }
 
 export default axios.create({
-    baseURL: BASE_URL
+    baseURL: BASE_URL,
+    headers: {
+        'Content-Type': 'application/json'
+    }
 })
