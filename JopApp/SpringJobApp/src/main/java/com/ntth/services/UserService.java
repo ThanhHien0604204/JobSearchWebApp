@@ -23,7 +23,7 @@ public interface UserService extends UserDetailsService {
 
     User getUserById(int id);
 
-    User authenticate(String username, String password);
+   // User authenticate(String username, String password);
 
     boolean isEmployerApproved(Integer userId);
 

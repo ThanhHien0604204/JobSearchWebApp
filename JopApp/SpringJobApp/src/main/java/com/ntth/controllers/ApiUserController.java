@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 import com.ntth.pojo.User;
 import com.ntth.services.UserService;
+import com.ntth.util.JwtUtils;
 import java.util.HashMap;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,6 +40,9 @@ public class ApiUserController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private JwtUtils jwtUtils;
 
     @GetMapping("/users/{userId}/feedbacks")
     public ResponseEntity<List<Feedback>> getFeedbacks(@PathVariable(value = "userId") int id) {
@@ -96,12 +100,33 @@ public class ApiUserController {
             System.out.println("[DEBUG] Missing or empty password");
             return ResponseEntity.badRequest().body(response);
         }
+        // Gọi userService để xác thực
+        Map<String, Object> authResult = userService.authenticateUser(username, password);
+        boolean success = (boolean) authResult.getOrDefault("success", false);
 
-        response = userService.authenticateUser(username, password);
-        if ((boolean) response.get("success")) {
+        if (success) {
+            // Sử dụng token từ authResult
+            String token = (String) authResult.getOrDefault("token", "");
+            response.put("success", true);
+            response.put("message", "Đăng nhập thành công!");
+            response.put("token", token);
+
+            // Lấy thông tin user từ authResult
+            Object user = authResult.get("user");
+            if (user != null) {
+                response.put("user", user);
+            } else {
+                response.put("user", new HashMap<>()); // Trả về user rỗng nếu không có
+            }
+            System.out.println("[DEBUG] Login successful for user: " + username);
             return ResponseEntity.ok(response);
         } else {
-            return ResponseEntity.badRequest().body(response);
+            // Đăng nhập thất bại, lấy thông báo lỗi từ authResult
+            String errorMessage = (String) authResult.getOrDefault("message", "Đăng nhập thất bại.");
+            response.put("success", false);
+            response.put("message", errorMessage);
+            System.out.println("[DEBUG] Login failed: " + errorMessage);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
         }
     }
 

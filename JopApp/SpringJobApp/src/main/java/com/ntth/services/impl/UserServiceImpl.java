@@ -60,10 +60,10 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private CloudinaryUtil cloudinaryUtil;
-    
+
     @Autowired
     private JwtUtils jwtUtil;
-    
+
     @Override
     public User getUserByUsername(String username) {
         return this.userRepository.getUserByUsername(username);
@@ -100,21 +100,19 @@ public class UserServiceImpl implements UserService {
     }
 
     //xác thực người dùng dựa trên username và password
-    @Override
-    public User authenticate(String username, String password) {
-        User user = userRepository.getUserByUsername(username);
-        if (user != null && passwordEncoder.matches(password, user.getPassword()) && user.isActive()) {
-            return user;
-        }
-        return null;
-    }
-
+//    @Override
+//    public User authenticate(String username, String password) {
+//        User user = userRepository.getUserByUsername(username);
+//        if (user != null && passwordEncoder.matches(password, user.getPassword()) && user.isActive()) {
+//            return user;
+//        }
+//        return null;
+//    }
     @Override
     public boolean isEmployerApproved(Integer userId) {
         Company company = companyRepository.findByUserId(userId);
         return company != null && company.getApproved();
     }
-
 
     @Override
     @Transactional
@@ -198,13 +196,23 @@ public class UserServiceImpl implements UserService {
                 return response;
             }
         }
-        // Tạo JWT token
-        String token = jwtUtil.generateToken(user.getUsername(), user.getRole().toString());
+        // Tạo token
+        try {
+            String token = jwtUtil.generateToken(user.getUsername(), user.getRole().toString());
+            response.put("success", true);
+            response.put("message", "Đăng nhập thành công!");
+            response.put("token", token);
 
-        response.put("success", true);
-        response.put("message", "Đăng nhập thành công!");
-        response.put("token", token);
-        response.put("user", user);
+            // Trả về thông tin user dưới dạng Map
+            Map<String, Object> userInfo = new HashMap<>();
+            userInfo.put("username", user.getUsername());
+            userInfo.put("role", user.getRole().toString());
+            response.put("user", userInfo);
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "Lỗi khi tạo token: " + e.getMessage());
+        }
+
         return response;
     }
 
