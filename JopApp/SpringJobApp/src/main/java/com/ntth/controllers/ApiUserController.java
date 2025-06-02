@@ -23,6 +23,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -80,7 +81,7 @@ public class ApiUserController {
         }
     }
 
-    @PostMapping("/login")
+    @PostMapping("/logins")
     public ResponseEntity<?> loginUser(@RequestBody Map<String, String> loginRequest) {
         System.out.println("[DEBUG] Login request received: " + loginRequest);
         String username = loginRequest.get("username");
@@ -131,14 +132,35 @@ public class ApiUserController {
     }
 
     @RequestMapping("/secure/profile")
-    @ResponseBody
-    public ResponseEntity<?> getProfile() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth != null && auth.getPrincipal() instanceof UserDetails) {
-            UserDetails userDetails = (UserDetails) auth.getPrincipal();
-            User user = userService.getUserByUsername(userDetails.getUsername());
-            return ResponseEntity.ok(user);
+    //@ResponseBody
+    public ResponseEntity<?> getCurrentUser(@RequestHeader("Authorization") String authHeader) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                response.put("success", false);
+                response.put("message", "Missing or invalid Authorization header.");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+            }
+            String token = authHeader.replace("Bearer ", "");
+            String username = jwtUtils.validateTokenAndGetUsername(token);
+            if (username == null) {
+                response.put("success", false);
+                response.put("message", "Token không hợp lệ hoặc đã hết hạn.");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+            }
+            User user = userService.getUserByUsername(username);
+            if (user != null) {
+                response.put("success", true);
+                response.put("user", user);
+            } else {
+                response.put("success", false);
+                response.put("message", "Người dùng không tồn tại.");
+            }
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "Token không hợp lệ: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
         }
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Chưa đăng nhập");
+        return ResponseEntity.ok(response);
     }
 }

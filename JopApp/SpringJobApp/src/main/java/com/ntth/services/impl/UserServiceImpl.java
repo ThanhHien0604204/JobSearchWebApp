@@ -202,12 +202,11 @@ public class UserServiceImpl implements UserService {
             response.put("success", true);
             response.put("message", "Đăng nhập thành công!");
             response.put("token", token);
-
+            response.put("user", user); // Đảm bảo user được thêm vào response
             // Trả về thông tin user dưới dạng Map
-            Map<String, Object> userInfo = new HashMap<>();
-            userInfo.put("username", user.getUsername());
-            userInfo.put("role", user.getRole().toString());
-            response.put("user", userInfo);
+            //Map<String, Object> userInfo = new HashMap<>();
+//            userInfo.put("username", user.getUsername());
+//            userInfo.put("role", user.getRole().toString());
         } catch (Exception e) {
             response.put("success", false);
             response.put("message", "Lỗi khi tạo token: " + e.getMessage());

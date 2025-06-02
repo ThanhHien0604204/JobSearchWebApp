@@ -5,11 +5,13 @@
 package com.ntth.filters;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ntth.util.JwtUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -23,6 +25,9 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
  */
 public class ApiAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
     private final ObjectMapper objectMapper = new ObjectMapper();
+    @Autowired
+    private JwtUtils jwtUtil;
+    
 
     public ApiAuthenticationFilter(AuthenticationManager authenticationManager) {
         setAuthenticationManager(authenticationManager);
