@@ -3,343 +3,204 @@ import PlacesAutocomplete from 'react-places-autocomplete';
 import { Link } from 'react-router-dom';
 import { Alert, Button, Col, Container, Form, Row, Card } from 'react-bootstrap';
 import { useLocation, useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import { endpoints,authApis } from '../configs/Api';
+import { endpoints, authApis } from '../configs/Apis';
+import Api from '../configs/Apis';
+import JobCard from './JobCard';
 import cookie from 'react-cookies';
-import { MyUserContext } from '../configs/Contexts';
+import { MyDispatchContext, MyUserContext } from '../configs/Contexts';
+import { useSearchParams } from 'react-router-dom';
 
-// const Home = () => {
-//     const [jobpostings, setJobpostings] = useState([]);
-//     const [categories, setCategories] = useState([]);
-//     const [totalPages, setTotalPages] = useState(1);
-//     const [currentPage, setCurrentPage] = useState(1);
-//     const [formData, setFormData] = useState({
-//         title: '',
-//         categoryId: '',
-//         location: '',
-//         // latitude: '',
-//         // longitude: '',
-//         workingTime: '',
-//         salaryFrom: '',
-//         salaryTo: '',
-//        // radius: '',
-//     });
-//     const [user, setUser] = useState(null);
-//     const navigate = useNavigate();
-//     const location = useLocation();
-
-//     //   const { isLoaded } = useJsApiLoader({
-//     //     googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY,
-//     //     libraries: ['places'],
-//     //   });
-
-//     useEffect(() => {
-//         // Lấy danh mục
-//         axios.get(endpoints.categories).then((response) => {
-//             setCategories(response.data);
-//         });
-
-//         // Lấy người dùng
-//         const token = cookie.load('token');
-//         if (token) {
-//             authApis().get(endpoints.currentUser).then((response) => {
-//                 setUser(response.data);
-//             });
-//         }
-
-//         // Lấy tham số từ URL
-//         const params = new URLSearchParams(location.search);
-//         const page = params.get('page') || '1';
-//         setCurrentPage(parseInt(page));
-//         setFormData({
-//             title: params.get('title') || '',
-//             categoryId: params.get('categoryId') || '',
-//             location: params.get('location') || '',
-//             //   latitude: params.get('latitude') || '',
-//             //   longitude: params.get('longitude') || '',
-//             workingTime: params.get('workingTime') || '',
-//             salaryFrom: params.get('salaryFrom') || '',
-//             salaryTo: params.get('salaryTo') || '',
-//             //radius: params.get('radius') || '',
-//         });
-
-//         // Lấy jobpostings
-//         fetchJobs(params);// Truyền params vào fetchJobs
-//     }, [location]);
-
-//     const fetchJobs = (params) => {
-//         const queryParams = {
-//             kw: params.get('title') || '',
-//             categoryId: params.get('categoryId') || '',
-//             location: params.get('location') || '',
-//             //   latitude: params.get('latitude') || '',
-//             //   longitude: params.get('longitude') || '',
-//             workingTime: params.get('workingTime') || '',
-//             salaryFrom: params.get('salaryFrom') || '',
-//             salaryTo: params.get('salaryTo') || '',
-//             //radius: params.get('radius') || '',
-//             page: params.get('page') || '1',
-//         };
-
-//         axios.get(endpoints.jobpostings, { params: queryParams }).then((response) => {
-//             setJobpostings(response.data.jobs);
-//             setTotalPages(response.data.totalPages);
-//         });
-//     };
-
-//     const handleInputChange = (e) => {
-//         const { name, value } = e.target;
-//         setFormData({ ...formData, [name]: value });
-//     };
-
-//     const handleSubmit = (e) => {
-//         e.preventDefault();
-//         const params = new URLSearchParams();
-//         Object.entries(formData).forEach(([key, value]) => {
-//           if (value) params.append(key, value);
-//         });
-//         params.append('page', '1');
-//         navigate(`/?${params.toString()}`);
-//       };
-
-//     const handleDelete = (id) => {
-//         if (window.confirm('Xóa bài đăng này?')) {
-//             authApis().delete(`${endpoints.deleteJob}/${id}`).then(() => {
-//                 fetchJobs(new URLSearchParams(location.search));
-//             });
-//         }
-//     };
-
-//     const handlePageChange = (page) => {
-//         const params = new URLSearchParams(location.search);
-//         params.set('page', page);
-//         navigate(`/?${params.toString()}`);
-//     };
-
-//     //   const initAutocomplete = () => {
-//     //     if (isLoaded && autocompleteRef.current) {
-//     //       const autocomplete = new google.maps.places.Autocomplete(autocompleteRef.current);
-//     //       autocomplete.addListener('place_changed', () => {
-//     //         const place = autocomplete.getPlace();
-//     //         if (place.geometry) {
-//     //           setFormData({
-//     //             ...formData,
-//     //             location: place.formatted_address,
-//     //             latitude: place.geometry.location.lat(),
-//     //             longitude: place.geometry.location.lng(),
-//     //           });
-//     //         }
-//     //       });
-//     //     }
-//     //   };
-
-//     //   if (!isLoaded) return <div>Loading...</div>;
-
-//     return (
-//         <Container className="my-4">
-//           <Form onSubmit={handleSubmit}>
-//             <Row className="g-3 align-items-end">
-//               <Col md={4}>
-//                 <Form.Control
-//                   type="text"
-//                   name="title"
-//                   value={formData.title}
-//                   onChange={(e) => handleInputChange(e.target.value)}
-//                   placeholder="Từ khóa..."
-//                 />
-//               </Col>
-//               {/* <Col md={4}>
-//                 <Form.Select name="categoryId" value={formData.categoryId} onChange={(e) => handleInputChange(e.target.value)}>
-//                   <option value="">Tất cả ngành nghề</option>
-//                   {categories.map((c) => (
-//                     <option key={c.id} value={c.id}>{c.name}</option>
-//                   ))}
-//                 </Form.Select>
-//               </Col> */}
-//               <Col md={4}>
-//                 <PlacesAutocomplete
-//                   value={formData.location}
-//                   onChange={handleInputChange}
-//                   onSelect={handleInputChange}
-//                 >
-//                   {({ getInputProps, suggestions, getSuggestionItemProps, loading }) => (
-//                     <div>
-//                       <Form.Control
-//                         {...getInputProps({
-//                           placeholder: 'Địa điểm...',
-//                           className: 'location-search-input',
-//                         })}
-//                       />
-//                       <div className="autocomplete-dropdown-container">
-//                         {loading && <div>Loading...</div>}
-//                         {suggestions.map((suggestion) => (
-//                           <div
-//                             {...getSuggestionItemProps(suggestion)}
-//                             key={suggestion.placeId}
-//                           >
-//                             {suggestion.description}
-//                           </div>
-//                         ))}
-//                       </div>
-//                     </div>
-//                   )}
-//                 </PlacesAutocomplete>
-//               </Col>
-//               <Col md={3}>
-//                 <Form.Select name="workingTime" value={formData.workingTime} onChange={(e) => handleInputChange(e.target.value)}>
-//                   <option value="">Tất cả thời gian</option>
-//                   <option value="Toàn thời gian">Toàn thời gian</option>
-//                   <option value="Bán thời gian">Bán thời gian</option>
-//                   <option value="Remote">Remote</option>
-//                 </Form.Select>
-//               </Col>
-//               <Col md={3}>
-//                 <Form.Control
-//                   type="number"
-//                   name="salaryFrom"
-//                   value={formData.salaryFrom}
-//                   onChange={(e) => handleInputChange(e.target.value)}
-//                   placeholder="Lương tối thiểu (VNĐ)"
-//                 />
-//               </Col>
-//               <Col md={3}>
-//                 <Form.Control
-//                   type="number"
-//                   name="salaryTo"
-//                   value={formData.salaryTo}
-//                   onChange={(e) => handleInputChange(e.target.value)}
-//                   placeholder="Lương tối đa (VNĐ)"
-//                 />
-//               </Col>
-//               <Col md={3}>
-//                 <Form.Control
-//                   type="number"
-//                   name="radius"
-//                   value={formData.radius}
-//                   onChange={(e) => handleInputChange(e.target.value)}
-//                   placeholder="Bán kính (km)"
-//                 />
-//               </Col>
-//               <Col md={12}>
-//                 <Button type="submit" variant="primary">Tìm kiếm</Button>
-//               </Col>
-//             </Row>
-//           </Form>
-
-//           <hr />
-
-//           {user && user.role === 'EMPLOYER' && (
-//             <Button as={Link} to="/jobpostings" variant="success" className="mb-3">
-//               Đăng bài
-//             </Button>
-//           )}
-
-//           {jobpostings.length === 0 ? (
-//             <Alert variant="info">Không tìm thấy công việc.</Alert>
-//           ) : (
-//             <>
-//               <Row xs={1} md={2} lg={3} className="g-4 mb-4">
-//                 {jobpostings.map((job) => (
-//                   <Col key={job.id}>
-//                     <Card className="h-100 shadow-sm">
-//                       <Card.Img
-//                         variant="top"
-//                         src={job.company.user?.avatar || 'https://console.cloudinary.com/app/c-e85a8930706ea6b97e7ca7edffd7c1/assets/media_library/homepage/asset/051dbceaa7f4a87d8840f54bbc1bd8d3/manage/summary?context=manage'}
-//                         style={{ height: '100px', objectFit: 'contain' }}
-//                       />
-//                       <Card.Body>
-//                         <Card.Title>{job.title}</Card.Title>
-//                         <Card.Text>
-//                           <strong>Mức lương:</strong> {job.salaryFrom} - {job.salaryTo} VNĐ<br />
-//                           <strong>Địa điểm:</strong> {job.location}<br />
-//                           <strong>Thời gian:</strong> {job.workingTime}
-//                         </Card.Text>
-//                         <Button variant="outline-primary" size="sm" className="me-2">
-//                           Ứng tuyển
-//                         </Button>
-//                         <Button variant="outline-success" size="sm">
-//                           <i className="bi bi-heart"></i>
-//                         </Button>
-//                       </Card.Body>
-//                       <Card.Footer className="text-muted">
-//                         {user && user.role === 'EMPLOYER' && (
-//                           <>
-//                             <Button
-//                               variant="danger"
-//                               size="sm"
-//                               onClick={() => handleDelete(job.id)}
-//                               className="me-2"
-//                             >
-//                               Xóa
-//                             </Button>
-//                             <Button
-//                               variant="info"
-//                               size="sm"
-//                               as={Link}
-//                               to={`/jobpostings/${job.id}`}
-//                             >
-//                               Sửa
-//                             </Button>
-//                           </>
-//                         )}
-//                       </Card.Footer>
-//                     </Card>
-//                   </Col>
-//                 ))}
-//               </Row>
-
-//               <nav aria-label="Page navigation">
-//                 <ul className="pagination justify-content-center">
-//                   <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
-//                     <Button
-//                       className="page-link"
-//                       onClick={() => handlePageChange(currentPage - 1)}
-//                     >
-//                       Trước
-//                     </Button>
-//                   </li>
-//                   {[...Array(totalPages).keys()].map((i) => (
-//                     <li
-//                       key={i + 1}
-//                       className={`page-item ${currentPage === i + 1 ? 'active' : ''}`}
-//                     >
-//                       <Button
-//                         className="page-link"
-//                         onClick={() => handlePageChange(i + 1)}
-//                       >
-//                         {i + 1}
-//                       </Button>
-//                     </li>
-//                   ))}
-//                   <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
-//                     <Button
-//                       className="page-link"
-//                       onClick={() => handlePageChange(currentPage + 1)}
-//                     >
-//                       Sau
-//                     </Button>
-//                   </li>
-//                 </ul>
-//               </nav>
-//             </>
-//           )}
-//         </Container>
-//       );
-// };
-
-// export default Home;
 const Home = () => {
-  const user = useContext(MyUserContext);
+    const user = useContext(MyUserContext);
+    const [q, setSearchParams] = useSearchParams();
 
-  return (
-      <div>
-          <h2>Trang chủ</h2>
-          {user ? (
-              <p>Xin chào, {user.username}!</p>
-          ) : (
-              <p>Vui lòng đăng nhập.</p>
-          )}
-      </div>
-  );
+    const [jobs, setJobs] = useState([]);
+    const [categories, setCategories] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const pageSize = 10;
+
+    const [searchParams, setSearchParamsState] = useState({
+        kw: q.get('kw') || '',
+        categoryId: q.get('categoryId') || '',
+        salaryFrom: q.get('salaryFrom') || '',
+        salaryTo: q.get('salaryTo') || '',
+        location: q.get('location') || '',
+        workingTime: q.get('workingTime') || ''
+    });
+    const fetchCategories = async () => {
+        try {
+            const response = await Api.get(endpoints['categories']); // Giả sử endpoint là "/api/categories"
+            setCategories(response.data);
+        } catch (error) {
+            console.error('Error fetching categories:', error);
+        }
+    };
+
+    const loadJobs = async () => {
+        try {
+            setLoading(true);
+            let url = endpoints['jobpostings']; // Đảm bảo endpoints['jobpostings'] là "/jobs"
+            // let kw = q.get('kw');
+            // if (kw) {
+            //     url = `${url}?kw=${kw}`; // Thêm query parameter
+            // }
+
+            // let res = await Api.get(url); // Gọi GET thay vì POST
+
+            const params = { page: currentPage };
+
+            if (searchParams.kw) params.kw = searchParams.kw;
+            if (searchParams.categoryId) params.categoryId = searchParams.categoryId;
+            if (searchParams.salaryFrom) params.salaryFrom = searchParams.salaryFrom;
+            if (searchParams.salaryTo) params.salaryTo = searchParams.salaryTo;
+            if (searchParams.location) params.location = searchParams.location;
+            if (searchParams.workingTime) params.workingTime = searchParams.workingTime;
+
+            const res = await Api.get(url, { params });
+            console.log("[DEBUG] Phản hồi từ API /jobs:", res.data);
+
+            if (!Array.isArray(res.data)) {
+                console.error("Dữ liệu trả về không phải mảng:", res.data);
+                setError("Dữ liệu không đúng định dạng.");
+                return;
+            }
+            setJobs(res.data);
+            const totalJobs = parseInt(res.headers['x-total-count'], 10) || 0;
+            setTotalPages(Math.ceil(totalJobs / pageSize));
+
+            // if (res.data.length === 0) {
+            //     setPage(0);
+            // } else {
+            //     if (page === 1) {
+            //         setJobs(res.data);
+            //     } else {
+            //         setJobs([...jobs, ...res.data]);
+            //     }
+            // }
+            console.log('Avatar URL:', jobs.companyId.userAvatar);
+        } catch (ex) {
+            console.error("Lỗi khi tải công việc:", ex);
+            setError("Không thể tải danh sách công việc.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // useEffect(() => {
+    //     if (page > 0)
+    //         loadJobs();
+    // }, [page, q]);
+
+    useEffect(() => {
+        fetchCategories();
+    }, []);
+
+    useEffect(() => {
+        loadJobs();
+    }, [currentPage, searchParams]);
+    const handleInputChange = (e) => {
+        const { name, value } = e.target;
+        setSearchParamsState({ ...searchParams, [name]: value });
+    };
+
+    const handleSearch = (e) => {
+        e.preventDefault();
+        setCurrentPage(1); // Reset về trang 1 khi tìm kiếm
+        setSearchParams(searchParams); // Cập nhật query params trong URL
+    };
+
+    // useEffect(() => {
+    //     setPage(1);
+    //     setJobs([]);
+    // }, [q]);
+    // Hàm xử lý chuyển trang
+    const handlePageChange = (page) => {
+        setCurrentPage(page);
+    };
+    return (
+        <div>
+            {/* <h2>Trang chủ</h2> 
+            {user ? (
+                <p>Xin chào, {user.username}!</p>
+            ) : (
+                <p>Vui lòng đăng nhập.</p>
+            )} */}
+            <div className="container mx-auto p-4">
+            <Form onSubmit={handleSearch}>
+                <Row className="mb-4">
+                    <Col md={3}>
+                        <Form.Control
+                            type="text"
+                            name="kw"
+                            value={searchParams.kw}
+                            onChange={handleInputChange}
+                            placeholder="Tìm kiếm"
+                        />
+                    </Col>
+                    <Col md={2}>
+                        <Form.Control as="select" name="categoryId" value={searchParams.categoryId} onChange={handleInputChange}>
+                            <option value="">Tất cả ngành nghề</option>
+                            {categories.map((category) => (
+                                <option key={category.id} value={category.id}>
+                                    {category.name}
+                                </option>
+                            ))}
+                        </Form.Control>
+                    </Col>
+                    <Col md={2}>
+                        <Form.Control as="select" name="workingTime" value={searchParams.workingTime} onChange={handleInputChange}>
+                            <option value="">Tất cả thời gian</option>
+                            <option value="Toàn thời gian">Toàn thời gian</option>
+                            <option value="Bán thời gian">Bán thời gian</option>
+                            <option value="Cuối tuần">Cuối tuần</option>
+                            <option value="Remote">Remote</option>
+                        </Form.Control>
+                    </Col>
+                    <Col md={2}>
+                        <Form.Control
+                            type="number"
+                            name="salaryFrom"
+                            value={searchParams.salaryFrom}
+                            onChange={handleInputChange}
+                            placeholder="Mức lương tối thiểu"
+                        />
+                    </Col>
+                    <Col md={2}>
+                        <Form.Control
+                            type="number"
+                            name="salaryTo"
+                            value={searchParams.salaryTo}
+                            onChange={handleInputChange}
+                            placeholder="Mức lương tối đa"
+                        />
+                    </Col>
+                    <Col md={2}>
+                        <Form.Control
+                            type="text"
+                            name="location"
+                            value={searchParams.location}
+                            onChange={handleInputChange}
+                            placeholder="Địa chỉ"
+                        />
+                    </Col>
+                    <Col md={1}>
+                        <Button type="submit" variant="primary">Tìm kiếm</Button>
+                    </Col>
+                </Row>
+            </Form>
+                <h2 className="text-2xl font-bold mb-4">Danh sách công việc</h2>
+                {jobs.length === 0 && <Alert variant="info" className="m-2">Không có sản phẩm nào!</Alert>}
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {jobs.map((job) => (
+                        <JobCard key={job.id} job={job} />
+                    ))}
+                </div>
+            </div>
+        </div>
+    );
 }
 export default Home;

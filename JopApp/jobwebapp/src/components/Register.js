@@ -1,8 +1,7 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { Button, Form, Col, Row, Alert, Container } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import { endpoints } from '../configs/Api';
+import Api, { endpoints } from '../configs/Apis';
 import cookie from 'react-cookies';
 
 const Register = () => {
@@ -27,6 +26,7 @@ const Register = () => {
     const [errors, setErrors] = useState({});
     const [message, setMessage] = useState('');
     const navigate = useNavigate();
+    const avatar = useRef();
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -69,14 +69,14 @@ const Register = () => {
     };
 
     const handleSubmit = async (e) => {
-        e.preventDefault(); // Ngăn chặn hành vi mặc định của form (submit GET)
+        e.preventDefault();
         const form = e.currentTarget;
         if (!form.checkValidity() || !validateForm()) {
-          e.stopPropagation();
-          form.classList.add('was-validated');
-          return;
+            e.stopPropagation();
+            form.classList.add('was-validated');
+            return;
         }
-      
+
         const data = new FormData();
         data.append('firstName', formData.firstName);
         data.append('lastName', formData.lastName);
@@ -86,32 +86,34 @@ const Register = () => {
         data.append('password', formData.password);
         data.append('role', formData.role);
         if (formData.avatar) data.append('avatar', formData.avatar);
-      
+
         if (formData.role === 'EMPLOYER') {
-          data.append('companyName', formData.companyName);
-          data.append('taxCode', formData.taxCode);
-          data.append('description', formData.description);
-          data.append('address', formData.address);
-          data.append('website', formData.website);
-          if (formData.image1) data.append('image1', formData.image1);
-          if (formData.image2) data.append('image2', formData.image2);
-          if (formData.image3) data.append('image3', formData.image3);
+            data.append('companyName', formData.companyName);
+            data.append('taxCode', formData.taxCode);
+            data.append('description', formData.description);
+            data.append('address', formData.address);
+            data.append('website', formData.website);
+            if (formData.image1) data.append('image1', formData.image1);
+            if (formData.image2) data.append('image2', formData.image2);
+            if (formData.image3) data.append('image3', formData.image3);
         }
-      
+
+        console.log("Sending request to:", `${Api.BASE_URL}${endpoints['register']}`); // Debug URL
         try {
-          const response = await axios.post(endpoints.register, data, {
-            headers: { 'Content-Type': 'multipart/form-data' },
-          });
-          if (response.data.success) {
-            cookie.save('token', response.data.token, { path: '/' });
-            setMessage('Đăng ký thành công! Vui lòng đăng nhập.');
-            navigate('/login');
-          } else {
-            setMessage(response.data.message || 'Đăng ký thất bại.');
-          }
+            const response = await Api.post(endpoints['register'], data, {
+                headers: { 'Content-Type': 'multipart/form-data' },
+            });
+            console.log("Response:", response.data);
+            if (response.data.success) {
+                cookie.save('token', response.data.token, { path: '/' });
+                setMessage('Đăng ký thành công! Vui lòng đăng nhập.');
+                navigate('/logins');
+            } else {
+                setMessage(response.data.message || 'Đăng ký thất bại.');
+            }
         } catch (error) {
-          console.error('Lỗi khi đăng ký:', error);
-          setMessage(error.response?.data?.message || 'Đăng ký thất bại. Vui lòng thử lại.');
+            console.error('Lỗi khi đăng ký:', error.response ? error.response.data : error.message);
+            setMessage(error.response?.data?.message || 'Đăng ký thất bại. Vui lòng thử lại.');
         }
     };
 
@@ -286,6 +288,7 @@ const Register = () => {
                                         <path d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 2H4v6l4-2 4 2 4-2V5z" />
                                     </svg>
                                     <Form.Control
+                                        ref={avatar}
                                         type="file"
                                         name="avatar"
                                         onChange={handleFileChange}
@@ -482,6 +485,7 @@ const Register = () => {
                                 type="submit"
                                 variant="success"
                                 className="w-100 py-2 rounded"
+
                             >
                                 Đăng ký
                             </Button>

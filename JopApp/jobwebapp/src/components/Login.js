@@ -1,9 +1,9 @@
 import React, { useContext, useState } from 'react';
 import { Button, Form, Col, Alert, Container } from 'react-bootstrap';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import Api, { authApis } from '../configs/Api';
+import Api, { authApis } from '../configs/Apis';
 import MySpinner from "./layout/MySpinner";
-import { endpoints } from '../configs/Api';
+import { endpoints } from '../configs/Apis';
 import cookie from 'react-cookies';
 import { MyDispatchContext, MyUserContext } from '../configs/Contexts';
 

@@ -1,81 +1,273 @@
-import React from "react";
-// const JobCard = ({ job }) => {
-//     return (
-//         <div className="bg-white shadow-md rounded-lg p-4 flex flex-col space-y-2 hover:shadow-lg transition-shadow">
-//             <div className="flex items-center space-x-3">
-//                 <img src={job.company_logo} alt="Company Logo" className="w-12 h-12 rounded" />
-//                 <div>
-//                     <h3 className="text-lg font-semibold">{job.title}</h3>
-//                     <p className="text-sm text-gray-600">{job.company_name}</p>
-//                 </div>
-//             </div>
-//             <p className="text-sm text-gray-500">{job.description}</p>
-//             <p className="text-sm text-gray-700">Lương: {job.salary}</p>
-//             <p className="text-sm text-gray-700">Địa điểm: {job.location}</p>
-//             <p className="text-sm text-gray-700">Thời gian: {job.working_time}</p>
-//             <p className="text-sm text-blue-600">{job.category_name}</p>
-//             <button className="mt-2 flex items-center text-green-600 hover:text-green-800">
-//                 <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-//                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 016.364 0L12 7.636l1.318-1.318a4.5 4.5 0 016.364 6.364L12 20.364l-7.682-7.682a4.5 4.5 0 010-6.364z" />
-//                 </svg>
-//                 Yêu thích
-//             </button>
-//         </div>
-//     );
-// };
-const JobPosting = () => {
-//const JobPosting = ({ onFilterChange }) => {
-    // const FilterBar = ({ onFilterChange }) => {
-    //     const [keyword, setKeyword] = React.useState("");
-    //     const [location, setLocation] = React.useState("");
-    //     const [category, setCategory] = React.useState("");
-    //     const [salary, setSalary] = React.useState("");
+import React, { useState, useEffect } from 'react';
+import { Container, Form, Button, Row, Col, Alert } from 'react-bootstrap';
+import { useNavigate } from 'react-router-dom';
+import Api, { endpoints } from '../configs/Apis'; 
+import cookie from 'react-cookies';
 
-    //     const handleFilter = () => {
-    //         onFilterChange({ keyword, location, category, salary });
-    //     };
+const PostJob = () => {
+    const navigate = useNavigate();
+    const [formData, setFormData] = useState({
+        title: '',
+        description: '',
+        skills: '',
+        salaryFrom: '',
+        salaryTo: '',
+        workingTime: '',
+        location: '',
+        locationLink: '',
+        categoryId: ''
+    });
+    const [categories, setCategories] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+    const [success, setSuccess] = useState(null);
 
-    //     return (
-    //         <div className="bg-teal-900 p-2 flex items-center space-x-2 text-white rounded-lg shadow-md">
-    //             <button className="p-2 rounded-md hover:bg-teal-800 focus:outline-none">
-    //                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    //                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16m-7 6h7" />
-    //                 </svg>
-    //                 <span className="ml-1">Danh mục Nghề</span>
-    //             </button>
-    //             <input 
-    //                 type="text"
-    //                 value={keyword}
-    //                 onChange={(e) => setKeyword(e.target.value)}
-    //                 placeholder="Vị trí tuyển dụng, tên công ty"
-    //                 className="p-2 rounded-md flex-1 text-gray-800 focus:outline-none"
-    //             />
-    //             <select
-    //                 value={location}
-    //                 onChange={(e) => setLocation(e.target.value)}
-    //                 className="p-2 rounded-md text-gray-800 bg-white focus:outline-none"
-    //             >
-    //                 <option value="">Địa điểm</option>
-    //                 {mockLocations.map((loc) => (
-    //                     <option key={loc} value={loc}>{loc}</option>
-    //                 ))}
-    //             </select>
-    //             <button
-    //                 onClick={handleFilter}
-    //                 className="bg-green-600 text-white px-4 py-2 rounded-full hover:bg-green-700 flex items-center"
-    //             >
-    //                 <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    //                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-    //                 </svg>
-    //                 Tìm kiếm
-    //             </button>
-    //         </div>
-    //     );
-    // }
+    // Lấy danh sách danh mục công việc khi component được mount
+    useEffect(() => {
+        const fetchCategories = async () => {
+            try {
+                const res = await Api.get(endpoints['categories']); // Giả định bạn có API để lấy danh mục
+                if (Array.isArray(res.data)) {
+                    setCategories(res.data);
+                } else {
+                    setError('Không thể tải danh sách danh mục.');
+                }
+            } catch (ex) {
+                console.error('Lỗi khi lấy danh mục:', ex);
+                setError('Không thể tải danh sách danh mục.');
+            }
+        };
+        fetchCategories();
+    }, []);
+
+    // Xử lý thay đổi giá trị trong form
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData({ ...formData, [name]: value });
+    };
+
+    // Xử lý gửi form
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+
+        setError(null);
+        setSuccess(null);
+        setLoading(true);
+
+        // Validate dữ liệu
+        if (!formData.title || formData.title.trim() === '') {
+            setError('Tiêu đề là bắt buộc.');
+            setLoading(false);
+            return;
+        }
+        if (!formData.description || formData.description.trim() === '') {
+            setError('Mô tả là bắt buộc.');
+            setLoading(false);
+            return;
+        }
+        if (!formData.categoryId) {
+            setError('Vui lòng chọn danh mục.');
+            setLoading(false);
+            return;
+        }
+
+        try {
+            const jobData = {
+                title: formData.title.trim(),
+                description: formData.description.trim(),
+                skills: formData.skills.trim(),
+                salaryFrom: parseInt(formData.salaryFrom) || 0,
+                salaryTo: parseInt(formData.salaryTo) || 0,
+                workingTime: formData.workingTime.trim(),
+                location: formData.location.trim(),
+                locationLink: formData.locationLink.trim(),
+                categoryId: parseInt(formData.categoryId)
+            };
+
+            const res = await Api.post(endpoints['createjob'], jobData, {
+                headers: {
+                    Authorization: `Bearer ${cookie.load('token')}`
+                }
+            });
+
+            if (res.data.success) {
+                setSuccess(res.data.message);
+                setTimeout(() => {
+                    navigate('/'); // Quay về trang chủ sau khi đăng thành công
+                }, 1500);
+            } else {
+                setError(res.data.message || 'Đăng bài thất bại.');
+            }
+        } catch (ex) {
+            console.error('Lỗi khi đăng bài:', ex);
+            if (ex.response) {
+                setError(ex.response.data.message || 'Lỗi máy chủ. Vui lòng thử lại.');
+            } else {
+                setError('Không thể kết nối đến server.');
+            }
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Xử lý hủy (quay lại trang trước)
+    const handleCancel = () => {
+        navigate(-1); // Quay lại trang trước đó
+    };
+
     return (
-        <>
-            <h1>DANH SACH JOB</h1>
-        </>
+        <Container className="my-4">
+            <h2 className="text-center mb-4">Đăng bài công việc</h2>
+
+            {error && <Alert variant="danger">{error}</Alert>}
+            {success && <Alert variant="success">{success}</Alert>}
+
+            <Form onSubmit={handleSubmit}>
+                <Row>
+                    <Col md={6}>
+                        <Form.Group className="mb-3" controlId="title">
+                            <Form.Label>Tiêu đề:</Form.Label>
+                            <Form.Control
+                                type="text"
+                                name="title"
+                                value={formData.title}
+                                onChange={handleChange}
+                                placeholder="Nhập tiêu đề công việc"
+                                required
+                            />
+                        </Form.Group>
+                    </Col>
+                    <Col md={6}>
+                        <Form.Group className="mb-3" controlId="categoryId">
+                            <Form.Label>Danh mục:</Form.Label>
+                            <Form.Select
+                                name="categoryId"
+                                value={formData.categoryId}
+                                onChange={handleChange}
+                                required
+                            >
+                                <option value="">Chọn danh mục</option>
+                                {categories.map((category) => (
+                                    <option key={category.id} value={category.id}>
+                                        {category.name}
+                                    </option>
+                                ))}
+                            </Form.Select>
+                        </Form.Group>
+                    </Col>
+                </Row>
+
+                <Row>
+                    <Col md={12}>
+                        <Form.Group className="mb-3" controlId="description">
+                            <Form.Label>Mô tả:</Form.Label>
+                            <Form.Control
+                                as="textarea"
+                                rows={3}
+                                name="description"
+                                value={formData.description}
+                                onChange={handleChange}
+                                placeholder="Nhập mô tả công việc"
+                                required
+                            />
+                        </Form.Group>
+                    </Col>
+                </Row>
+
+                <Row>
+                    <Col md={6}>
+                        <Form.Group className="mb-3" controlId="skills">
+                            <Form.Label>Kỹ năng:</Form.Label>
+                            <Form.Control
+                                type="text"
+                                name="skills"
+                                value={formData.skills}
+                                onChange={handleChange}
+                                placeholder="Nhập kỹ năng yêu cầu (cách nhau bằng dấu phẩy)"
+                            />
+                        </Form.Group>
+                    </Col>
+                    <Col md={3}>
+                        <Form.Group className="mb-3" controlId="salaryFrom">
+                            <Form.Label>Lương tối thiểu (nghìn đồng):</Form.Label>
+                            <Form.Control
+                                type="number"
+                                name="salaryFrom"
+                                value={formData.salaryFrom}
+                                onChange={handleChange}
+                                placeholder="Ví dụ: 25000"
+                                min="0"
+                            />
+                        </Form.Group>
+                    </Col>
+                    <Col md={3}>
+                        <Form.Group className="mb-3" controlId="salaryTo">
+                            <Form.Label>Lương tối đa (nghìn đồng):</Form.Label>
+                            <Form.Control
+                                type="number"
+                                name="salaryTo"
+                                value={formData.salaryTo}
+                                onChange={handleChange}
+                                placeholder="Ví dụ: 30000"
+                                min="0"
+                            />
+                        </Form.Group>
+                    </Col>
+                </Row>
+
+                <Row>
+                    <Col md={6}>
+                        <Form.Group className="mb-3" controlId="workingTime">
+                            <Form.Label>Thời gian làm việc:</Form.Label>
+                            <Form.Control
+                                type="text"
+                                name="workingTime"
+                                value={formData.workingTime}
+                                onChange={handleChange}
+                                placeholder="Ví dụ: Cuối tuần, Tối"
+                            />
+                        </Form.Group>
+                    </Col>
+                    <Col md={6}>
+                        <Form.Group className="mb-3" controlId="location">
+                            <Form.Label>Địa điểm:</Form.Label>
+                            <Form.Control
+                                type="text"
+                                name="location"
+                                value={formData.location}
+                                onChange={handleChange}
+                                placeholder="Ví dụ: 45 Nguyễn Huệ, Q1, HCM"
+                            />
+                        </Form.Group>
+                    </Col>
+                </Row>
+
+                <Row>
+                    <Col md={12}>
+                        <Form.Group className="mb-3" controlId="locationLink">
+                            <Form.Label>Link địa điểm:</Form.Label>
+                            <Form.Control
+                                type="text"
+                                name="locationLink"
+                                value={formData.locationLink}
+                                onChange={handleChange}
+                                placeholder="Ví dụ: https://goo.gl/maps/abc123"
+                            />
+                        </Form.Group>
+                    </Col>
+                </Row>
+
+                <div className="d-flex justify-content-end gap-2">
+                    <Button variant="primary" type="submit" disabled={loading}>
+                        {loading ? 'Đang lưu...' : 'Lưu'}
+                    </Button>
+                    <Button variant="secondary" onClick={handleCancel} disabled={loading}>
+                        Hủy
+                    </Button>
+                </div>
+            </Form>
+        </Container>
     );
-}
-    export default JobPosting;
+};
+
+export default PostJob;

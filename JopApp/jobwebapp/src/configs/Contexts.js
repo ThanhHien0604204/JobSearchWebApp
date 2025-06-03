@@ -1,5 +1,5 @@
 import { createContext, useEffect, useReducer } from "react";
-import { authApis, endpoints } from "./Api";
+import { authApis, endpoints } from "./Apis";
 import userReducer from "../reducers/MyUserReducer";
 import cookie from 'react-cookies'
 

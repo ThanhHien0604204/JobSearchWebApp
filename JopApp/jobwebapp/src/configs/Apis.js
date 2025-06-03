@@ -5,11 +5,27 @@ const BASE_URL = 'http://localhost:8080/JobSearchWebApp/api/';
 
 export const endpoints = {
     'categories': '/categories',
-    'jobpostings': '/jobpostings',
+    'jobpostings': '/jobs',
+    'createjob': '/createjob',
     'register': '/users',
     'login': 'logins',
     'current-user': '/secure/profile',
-    //'deleteJob': '/api/jobpostings',
+    'get_all_applications': '/JobApplications',
+    'jaOfUser': '/jobapplications',
+    'accept': '/jobapplications/accept/',
+    'reject': '/jobapplication/reject/',
+    'feedbacks': '/feedback',
+    'addFeedback':'/feedback/add/',
+    'companies': '/companies',
+    'follows': '/follow/',
+    'followed': '/followed',//danh sach công ty đã theo dõi
+    'users-work-with': '/worked-with',
+    'fbOfUser': '/feedback/user/',
+    'fbOfUser_1': '/feedback/user/1',
+    'inactiveUsers': '/users/inactive',
+    'approveUser': '/users/approve/',
+    'stats': '/stats/revenue'
+
 }
 
 export const authApis = () => {//object để tạo request có token

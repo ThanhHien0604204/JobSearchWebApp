@@ -1,101 +1,95 @@
-import React, { useContext, useEffect, useState } from 'react';
-import { Button, Container, Nav, Navbar, NavDropdown, Image } from 'react-bootstrap';
-import { Link, useNavigate } from 'react-router-dom';
+import { useContext, useEffect, useState } from "react";
+import { Button, Container, Form, Nav, Navbar, NavDropdown } from "react-bootstrap";
+import { Link, useNavigate } from "react-router-dom";
+import Apis, { endpoints } from "../../configs/Apis";
+import { MyDispatchContext, MyUserContext } from "../../configs/Contexts";
 import axios from 'axios';
-import { endpoints, authApis } from '../../configs/Api';
-import cookie from 'react-cookies';
-import { MyDispatchContext, MyUserContext } from '../../configs/Contexts';
 
 const Header = () => {
-  const [categories, setCategories] = useState([]);
-  const user = useContext(MyUserContext);
-  const nav = useNavigate();
-  const [kw, setKw] = useState();
-  const dispatch = useContext(MyDispatchContext);
+    const [categories, setCategories] = useState([]);
+    const [kw, setKw] = useState();
 
-  useEffect(() => {
-    // Lấy danh sách danh mục
-    axios.get(endpoints.categories)
-      .then((response) => {
-        setCategories(response.data);
-      })
-      .catch((error) => console.error('Lỗi khi tìm danh mục:', error));
+    const nav = useNavigate();
+    const user = useContext(MyUserContext);
+    const dispatch = useContext(MyDispatchContext);
+    useEffect(() => {
+        // Lấy danh sách danh mục
+        axios.get(endpoints.categories)
+            .then((response) => {
+                setCategories(response.data);
+            })
+            .catch((error) => console.error('Lỗi khi tìm danh mục:', error));
+    }, []);
 
-    // // Lấy thông tin người dùng
-    // const token = cookie.load('token');
-    // if (token) {
-    //   authApis(token).get(endpoints['current-user'])
-    //     .then((response) => {
-    //       setUser(response.data);
-    //     })
-    //     .catch((error) => {
-    //       console.error('Lỗi khi tìm kiếm người dùng:', error);
-    //       cookie.remove('token'); // Xóa token nếu không hợp lệ
-    //       setUser(null);
-    //     });
-    // }
-  }, []);
+    const handleLoginRegister = () => {
+        nav('/login'); // Hoặc mở modal đăng nhập/đăng ký nếu cần
+    };
 
-  // const handleLogout = () => {
-  //   cookie.remove('token');
-  //   setUser(null);
-  //   nav('/login');
-  // };
-  const handleLoginRegister = () => {
-    nav('/login'); // Hoặc mở modal đăng nhập/đăng ký nếu cần
-  };
-  return (
-    <Navbar expand="lg" bg="light" variant="light" className="shadow-sm py-3">
-      <Container>
-        <Navbar.Brand as={Link} to="/" className="fw-bold text-dark">
-          <h1 className="display-6 d-inline">JobSearch</h1>
-          <span className="ms-2 text-muted">Tìm việc dễ dàng</span>
-        </Navbar.Brand>
 
-        {/* Liên kết giữa */}
-        <Nav className="mx-auto">
-          <Link to="/" className="nav-link">Trang chủ</Link>
-        </Nav>
+    return (
 
-        {/* <NavDropdown title="Danh mục" id="categoryDropdown">
-            {categories.map((c) => (
-              <NavDropdown.Item
-                key={c.id}
-                as={Link}
-                to={`/?categoryId=${c.id}`}
-              >
-                {c.name}
-              </NavDropdown.Item>
-            ))}
-          </NavDropdown> */}
-        {user === null ? (
-          <>
-            <Link to="/users" className="nav-link text-success">Đăng ký</Link>
-            <Link to="/logins" className="nav-link text-danger">Đăng nhập</Link>
-          </>
-        ) : (
-          <>
-            <Link to="/" className="me-3">
-              <Image
-                src={user.avatar || 'https://via.placeholder.com/40'}
-                alt="Avatar"
-                roundedCircle
-                className="me-2"
-                width="40"
-              />
-              Chào {user.username}!
-            </Link>
-            {user.role === 'EMPLOYER' && (
-              <Link to="/jobpostings" className="nav-link text-danger">Đăng bài</Link>
-            )}
-            <Button variant="danger" onClick={() => dispatch({ "type": "logout" })} className="rounded-pill">
-              Đăng xuất
-            </Button>
-          </>
-        )}
-      </Container>
-    </Navbar>
-  );
-};
+        <Navbar expand="lg" className="bg-body-tertiary">
+            <Container>
+                <Navbar.Brand as={Link} to="/" className="fw-bold text-dark">
+                    <h1 className="display-6 d-inline">JobSearch</h1>
+                    <span className="ms-2 text-muted">Tìm việc dễ dàng</span>
+                </Navbar.Brand>
+
+                {/* Liên kết giữa */}
+                <Nav className="mx-auto">
+                    <Link to="/" className="nav-link">Trang chủ</Link>
+                </Nav>
+
+                {user === null ? <>
+                    <Link to="/register" className="nav-link text-success">Đăng ký</Link>
+                    <Link to="/login" className="nav-link text-danger">Đăng nhập</Link>
+
+                    <Link to="/jaOfUser" className="nav-link text-danger">Danh sách ứng tuyển</Link>
+                    <Link to="/companies" className="nav-link text-danger">Các công ty</Link>
+                    <Link to="/users-work-with" className="nav-link text-danger">Đánh giá</Link>
+                    <Link to="/stats" className="nav-link text-danger">Thống kê báo cáo</Link>
+                    <Link to="/inactiveUser" className="nav-link text-danger">Duyệt nhà tuyển dụng</Link>
+
+                </> : <>
+                    <Link to="/" className="nav-link text-success">Chào {user.username}!</Link>
+                    {user.role === 'CANDIDATE' ? <>
+                        <Link to="/jaOfUser" className="nav-link text-danger">Danh sách ứng tuyển</Link>
+                        <Link to="/companies" className="nav-link text-danger">Các công ty</Link>
+                        <Link to="/users-work-with" className="nav-link text-danger">Đánh giá</Link>
+                    </> : <>
+                        {user.role === 'EMPLOYER' ? <>
+                            <Link to="/jaOfUser" className="nav-link text-danger">Danh sách ứng tuyển</Link>
+                            <Link to="/users-work-with" className="nav-link text-danger">Đánh giá</Link>
+
+                        </> : <>
+                            <Link to="/get_all_applications" className="nav-link text-danger">Danh sách ứng tuyển</Link>
+                            <Link to="/inactiveUser" className="nav-link text-danger">Duyệt nhà tuyển dụng</Link>
+                            <Link to="/stats" className="nav-link text-danger">Thống kê báo cáo</Link>
+
+
+                        </>}
+                    </>}
+
+                    <Button className="btn btnd-danger" onClick={() => dispatch({ "type": "logout" })}>Đăng xuất</Button>
+                </>}
+
+
+
+
+                {/* <Form onSubmit={search} className="d-flex">
+                            <Form.Control value={kw} onChange={e => setKw(e.target.value)}
+                                type="search"
+                                placeholder="Tìm kiếm..."
+                                className="me-2"
+                                aria-label="Search"
+                            />
+                            <Button type="submit" variant="outline-success">Tìm</Button>
+                        </Form> */}
+
+            </Container >
+        </Navbar >
+
+    );
+}
 
 export default Header;
