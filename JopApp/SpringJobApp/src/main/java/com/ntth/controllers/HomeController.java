@@ -72,17 +72,19 @@ public class HomeController {
 //        }
         params.put("page", page); // Truyền page từ query parameter
 
-        Map<String, Object> jobpostings = jobService.getJob(params);
-        model.addAttribute("jobpostings", jobpostings);
+        // Lấy danh sách job trực tiếp từ service
+        List<Job> jobList = jobService.getJob(params);
+        model.addAttribute("jobpostings", jobList);
 
         // Tính tổng số trang
         long totalJobs = jobService.countJobs(params);
-        int pageSize = 10; // Giả sử PAGE_SIZE = 10
+        int pageSize = 10; // Đảm bảo PAGE_SIZE trong JobPostingsRepositoryImpl là 10 hoặc điều chỉnh tại đây
         int totalPages = (int) Math.ceil((double) totalJobs / pageSize);
         model.addAttribute("currentPage", Integer.parseInt(page));
         model.addAttribute("totalPages", totalPages > 0 ? totalPages : 1);
         model.addAttribute("pageSize", pageSize);
 
+        // Lấy danh sách danh mục
         List<JobCategory> categories = jobCategoryRepository.getAllCategories();
         model.addAttribute("categories", categories != null ? categories : List.of());
 

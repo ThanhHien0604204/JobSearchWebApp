@@ -100,6 +100,7 @@ public class SpringSecurityConfigs {
                 .requestMatchers("/user/**").hasAuthority("ADMIN")
                 .requestMatchers("/user").permitAll()
                 .requestMatchers("/stats", "/stats/**").hasAuthority("ADMIN")
+                //.requestMatchers("/api/jobs/**").hasAuthority("EMPLOYER")
                 .requestMatchers("/", "/index", "/login", "/register", "/js/**").permitAll()
                 .requestMatchers("/api/secure/**").authenticated() // Bảo vệ /api/secure/**
                 .requestMatchers("/api/**").permitAll())
@@ -167,6 +168,7 @@ public class SpringSecurityConfigs {
 
         return mailSender;
     }
+
     @Bean
     public JwtUtils jwtUtils() {
         return new JwtUtils();

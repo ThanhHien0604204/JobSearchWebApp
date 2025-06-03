@@ -10,6 +10,7 @@ import jakarta.data.repository.Repository;
 import jakarta.persistence.Query;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,7 +33,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 @Transactional//bật giao tác
 public class JobPostingsRepositoryImpl implements JobPostingsRepository {
 
-    private static final int PAGE_SIZE = 20;
+    private static final int PAGE_SIZE = 10;
 
 //    @Autowired//có autowired mới có đối tượng
 //    private LocalSessionFactoryBean factory;
@@ -45,7 +46,7 @@ public class JobPostingsRepositoryImpl implements JobPostingsRepository {
 
     @Override
     @Transactional(readOnly = true)
-    public Map<String, Object> getJob(Map<String, String> params) {
+    public List<Job> getJob(Map<String, String> params) {
         Session s = sessionFactory.getCurrentSession();
         CriteriaBuilder b = s.getCriteriaBuilder();//chưa tất cả truy vấn
         // Tạo CriteriaQuery để lấy danh sách job
@@ -56,6 +57,7 @@ public class JobPostingsRepositoryImpl implements JobPostingsRepository {
         List<Predicate> predicates = new ArrayList<>();
         // Chỉ lấy công việc từ công ty được phê duyệt
         predicates.add(b.equal(root.get("companyId").get("approved"), true));
+
         if (params != null) {
             // Từ khóa tìm kiếm theo name
             String kw = params.get("kw");
@@ -141,31 +143,31 @@ public class JobPostingsRepositoryImpl implements JobPostingsRepository {
             // Áp dụng điều kiện cho truy vấn//rồi mới dùng where 1 lần
             q.where(predicates.toArray(Predicate[]::new));
         }         //chuyển thành mảng   //cú pháp này tách ra từng phần tử truyền vào where
+
+        // Nạp cả companyId và userId trong một lần fetch
+        root.fetch("companyId", JoinType.LEFT).fetch("userId", JoinType.LEFT);
+        //đảm bảo rằng nếu không có Company hoặc User, dữ liệu Job vẫn được trả về.
         Query query = s.createQuery(q);
-        //phân trang
         if (params != null && params.containsKey("page")) {
             try {
                 int page = Integer.parseInt(params.getOrDefault("page", "1"));
-                //k gửi thì mặc định lấy 1
                 int start = (page - 1) * PAGE_SIZE;
-                query.setMaxResults(PAGE_SIZE);//số phần từ tối đa lấy trong 1 lấy(số bản ghi trả về trong một trang)
-                query.setFirstResult(start);//vị trí đầu tiên bắt đầu lấy 
+                query.setMaxResults(PAGE_SIZE);
+                query.setFirstResult(start);
                 System.out.println("[DEBUG] Fetching jobs for page: " + params.get("page") + ", start: " + start + ", max: " + PAGE_SIZE);
             } catch (NumberFormatException e) {
                 System.out.println("[ERROR] Invalid page: " + params.get("page"));
             }
         }
         List<Job> jobs = query.getResultList();
-
-        // Tính tổng số trang bằng countJobs
-        long totalRecords = countJobs(params);
-        int totalPages = (int) Math.ceil((double) totalRecords / PAGE_SIZE);
-
-        // Trả về kết quả
-        Map<String, Object> response = new HashMap<>();
-        response.put("jobs", jobs);
-        response.put("totalPages", totalPages);
-        return response;
+        for (Job job : jobs) {
+            System.out.println("[DEBUG] Job ID: " + job.getId()
+                    + ", Company ID: " + (job.getCompanyId() != null ? job.getCompanyId().getId() : "null")
+                    + ", User Avatar: " + (job.getCompanyId() != null && job.getCompanyId().getUserId() != null
+                    ? job.getCompanyId().getUserId().getAvatar() : "null"));
+        }
+        return jobs;
+        //return query.getResultList();
     }
 
     @Override//lấy sp theo mã

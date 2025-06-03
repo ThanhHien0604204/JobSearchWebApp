@@ -68,19 +68,19 @@
         <hr />
         <a th:if="${#authorization.expression('hasAuthority(''EMPLOYER'')')}"
            th:href="@{/jobpostings}" class="btn btn-success mt-1">Đăng bài</a>
-        
+
         <a th:if="${#authorization.expression('hasAnyAuthority(''EMPLOYER'', ''CANDIDATE'')')}"
            th:href="@{/listapplications}" class="btn btn-success mt-1">Danh sách ứng tuyển</a>
-        
+
         <a th:if="${#authorization.expression('hasAuthority(''CANDIDATE'')')}"
            th:href="@{/company}" class="btn btn-success mt-1">Danh sách công ty</a>
-        
+
         <a th:if="${#authorization.expression('hasAnyAuthority(''EMPLOYER'', ''CANDIDATE'')')}"
            th:href="@{/users/workedWith}" class="btn btn-success mt-1">Đánh giá người dùng</a>
-        
+
         <a th:if="${#authorization.expression('hasAuthority(''ADMIN'')')}"
            th:href="@{/user}" class="btn btn-success mt-1">Duyệt nhà tuyển dụng</a>
-        
+
         <a th:if="${#authorization.expression('hasAuthority(''ADMIN'')')}"
            th:href="@{/stats}" class="btn btn-success mt-1">Thống kê báo cáo</a>
         <table class="table table-striped">
@@ -97,7 +97,7 @@
                 </tr>
             </thead>
             <tbody>
-                <tr th:each="p : ${jobpostings.jobs}">
+                <tr th:each="p : ${jobpostings}">
                     <td th:text="${p.id}"></td>
                     <td th:text="${p.title}"></td>
                     <td th:text="${p.description}"></td>
@@ -123,7 +123,14 @@
                 </tr>
             </tbody>
         </table>
-        <div th:if="${jobpostings.jobs.isEmpty()}" class="alert alert-info">
+        <!-- Phân trang -->
+        <div>
+            <span>Trang: </span>
+            <span th:each="p : ${#numbers.sequence(1, totalPages)}">
+                <a th:href="@{/page=}+${p}" th:text="${p}" th:class="${currentPage == p} ? 'active' : ''"></a>
+            </span>
+        </div>
+        <div th:if="${jobpostings.isEmpty()}" class="alert alert-info">
             Không tìm thấy công việc.
         </div>
     </main>

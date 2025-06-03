@@ -7,11 +7,15 @@ package com.ntth.configs;
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 import jakarta.servlet.MultipartConfigElement;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import org.springframework.boot.web.servlet.MultipartConfigFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.format.FormatterRegistry;
+import org.springframework.http.MediaType;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.util.unit.DataSize;
 import org.springframework.web.filter.HiddenHttpMethodFilter;
@@ -70,5 +74,14 @@ public class WebAppContextConfigs implements WebMvcConfigurer {
                 .allowedHeaders("*") // Cho phép tất cả header
                 .allowCredentials(true) // Cho phép gửi cookie/token
                 .maxAge(3600); // Thời gian cache preflight (tùy chọn)
+    }
+    @Bean
+    public MappingJackson2HttpMessageConverter mappingJackson2HttpMessageConverter() {
+        MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
+        converter.setSupportedMediaTypes(Arrays.asList(
+            MediaType.APPLICATION_JSON,
+            new MediaType("application", "json", StandardCharsets.UTF_8)
+        ));
+        return converter;
     }
 }

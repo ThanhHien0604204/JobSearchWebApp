@@ -28,7 +28,7 @@ public class JobPostingsServiceImpl implements JobPostingsService {
     private Cloudinary cloudinary;
 
     @Override
-    public Map<String, Object> getJob(Map<String, String> params) {
+    public List<Job> getJob(Map<String, String> params) {
         return this.jobRepo.getJob(params);
     }
 

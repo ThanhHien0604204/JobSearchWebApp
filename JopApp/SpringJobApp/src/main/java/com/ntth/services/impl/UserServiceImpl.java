@@ -90,7 +90,7 @@ public class UserServiceImpl implements UserService {
         }
         List<GrantedAuthority> authorities = new ArrayList<>();
         authorities.add(new SimpleGrantedAuthority(u.getRole().name()));
-        System.out.println("Authorities: " + authorities);
+        System.out.println("[DEBUG] Authorities: " + authorities);
         // Trả về UserDetails
         return new org.springframework.security.core.userdetails.User(
                 u.getUsername(),
@@ -203,15 +203,11 @@ public class UserServiceImpl implements UserService {
             response.put("message", "Đăng nhập thành công!");
             response.put("token", token);
             response.put("user", user); // Đảm bảo user được thêm vào response
-            // Trả về thông tin user dưới dạng Map
-            //Map<String, Object> userInfo = new HashMap<>();
-//            userInfo.put("username", user.getUsername());
-//            userInfo.put("role", user.getRole().toString());
+
         } catch (Exception e) {
             response.put("success", false);
             response.put("message", "Lỗi khi tạo token: " + e.getMessage());
         }
-
         return response;
     }
 
@@ -287,7 +283,7 @@ public class UserServiceImpl implements UserService {
             user.setEmail(email.trim());
             user.setPhone(phone != null ? phone.trim() : null);
             user.setUsername(username.trim());
-            user.setPassword(passwordEncoder.encode(password)); // Mã hóa mật khẩu tại tầng service
+            user.setPassword(password); // Mã hóa mật khẩu tại tầng service
             user.setRole(User.Role.valueOf(role.toUpperCase()));
             user.setAvatar(avatarUrl);
             user.setActive(!"EMPLOYER".equalsIgnoreCase(role)); // EMPLOYER chờ phê duyệt

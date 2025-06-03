@@ -68,12 +68,11 @@ public class ApiUserController {
             @RequestParam(value = "image1", required = false) MultipartFile image1,
             @RequestParam(value = "image2", required = false) MultipartFile image2,
             @RequestParam(value = "image3", required = false) MultipartFile image3) {
-
+        System.out.println("Received registration request: " + firstName + " " + lastName); // Debug
         Map<String, Object> response = userService.registerUser(
                 firstName, lastName, email, phone, username, password, role,
                 avatar, companyName, taxCode, description, address, website,
                 image1, image2, image3);
-
         if ((boolean) response.get("success")) {
             return ResponseEntity.ok(response);
         } else {

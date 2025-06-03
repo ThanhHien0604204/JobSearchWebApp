@@ -6,6 +6,7 @@ package com.ntth.filters;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ntth.util.JwtUtils;
+import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -24,10 +25,11 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
  * @author LOQ
  */
 public class ApiAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
+
     private final ObjectMapper objectMapper = new ObjectMapper();
+
     @Autowired
     private JwtUtils jwtUtil;
-    
 
     public ApiAuthenticationFilter(AuthenticationManager authenticationManager) {
         setAuthenticationManager(authenticationManager);
@@ -54,6 +56,7 @@ public class ApiAuthenticationFilter extends UsernamePasswordAuthenticationFilte
             Map<String, String> credentials = objectMapper.readValue(request.getInputStream(), Map.class);
             String username = credentials.get("username");
             String password = credentials.get("password");
+            System.out.println("[DEBUG] Nhận yêu cầu đăng nhập: username=" + username + ", password length=" + (password != null ? password.length() : 0));
             if (username == null || password == null) {
                 response.setStatus(HttpStatus.BAD_REQUEST.value());
                 response.setContentType("application/json");
@@ -78,5 +81,16 @@ public class ApiAuthenticationFilter extends UsernamePasswordAuthenticationFilte
             }
             return null;
         }
+    }
+
+    @Override
+    protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response,
+            AuthenticationException failed) throws IOException {
+        response.setStatus(HttpStatus.UNAUTHORIZED.value());
+        response.setContentType("application/json");
+        Map<String, Object> responseBody = new HashMap<>();
+        responseBody.put("success", false);
+        responseBody.put("message", failed.getMessage() != null ? failed.getMessage() : "Xác thực thất bại.");
+        new ObjectMapper().writeValue(response.getOutputStream(), responseBody);
     }
 }
